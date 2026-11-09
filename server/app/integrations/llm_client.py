@@ -72,19 +72,27 @@ async def chat_completion(messages: list[dict], max_tokens: int = 512) -> str:
         )
         raise LLMUnavailableError("LLM API key is not configured.")
 
+    # Free/reasoning models (e.g. Nemotron, DeepSeek-R1) consume completion tokens
+    # for internal reasoning before writing 'content'. Give them sufficient headroom.
+    effective_max_tokens = max(max_tokens, 1500)
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    payload = {"model": model, "messages": messages, "max_tokens": max_tokens}
+    payload = {"model": model, "messages": messages, "max_tokens": effective_max_tokens}
 
     start_time = time.perf_counter()
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=35) as client:
             resp = await client.post(url, headers=headers, json=payload)
             resp.raise_for_status()
             data = resp.json()
-            content = data["choices"][0]["message"]["content"]
+            choice = data["choices"][0]
+            content = choice["message"].get("content")
+            if not content:
+                finish = choice.get("finish_reason")
+                raise LLMUnavailableError(f"Model returned empty content (finish_reason: {finish})")
             latency_ms = int((time.perf_counter() - start_time) * 1000)
             log_llm_audit(
                 messages=messages,

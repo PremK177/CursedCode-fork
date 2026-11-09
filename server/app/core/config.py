@@ -1,10 +1,14 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_REPO_ENV = str(Path(__file__).resolve().parents[3] / ".env")
+_SERVER_ENV = str(Path(__file__).resolve().parents[2] / ".env")
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env", "server/.env"),
+        env_file=(_REPO_ENV, _SERVER_ENV, ".env", "../.env", "server/.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
