@@ -13,18 +13,11 @@ export default function ChallengeFilters({
   hasActiveFilters
 }) {
   return (
-    <section className="filters-console" aria-label="Filter challenges">
-      <div className="filters-console__header">
-        <span className="console-indicator" aria-hidden="true">◆</span>
-        <span className="console-title">Challenge Filters</span>
-        <span className="console-line" aria-hidden="true" />
-      </div>
-
+    <section className="filters-bar" aria-label="Filter problems">
       <div className="filters-grid">
-        {/* Search Field */}
-        <div className="filter-group filter-group--search">
+        <div className="filter-group">
           <label htmlFor="challenge-search" className="filter-label">
-            <span className="filter-label__main">Search</span>
+            Search Problems
           </label>
           <div className="search-input-wrapper">
             <span className="search-icon" aria-hidden="true">⌕</span>
@@ -32,10 +25,9 @@ export default function ChallengeFilters({
               id="challenge-search"
               type="text"
               className="filter-input filter-input--search"
-              placeholder="Search challenges by keyword, concept, or title..."
+              placeholder="Search by problem title, slug, or topic..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              aria-label="Search challenges by title, description, or concept"
             />
             {searchQuery && (
               <button
@@ -50,84 +42,72 @@ export default function ChallengeFilters({
           </div>
         </div>
 
-        {/* Grade / Difficulty Filter */}
         <div className="filter-group">
           <label htmlFor="grade-filter" className="filter-label">
-            <span className="filter-label__main">Grade</span>
+            Difficulty
           </label>
-          <div className="select-wrapper">
-            <select
-              id="grade-filter"
-              className="filter-select"
-              value={selectedGrade}
-              onChange={(e) => onGradeChange(e.target.value)}
-            >
-              <option value="All grades">All grades</option>
-              {GRADE_SCALE.slice(0, 3).map((item) => (
-                <option key={item.grade} value={item.grade}>
-                  {item.grade} · {item.difficulty}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            id="grade-filter"
+            className="filter-select"
+            value={selectedGrade}
+            onChange={(e) => onGradeChange(e.target.value)}
+          >
+            <option value="All grades">All Difficulties</option>
+            {GRADE_SCALE.slice(0, 3).map((item) => (
+              <option key={item.grade} value={item.grade}>
+                {item.difficulty} ({item.grade})
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Concept Filter */}
         <div className="filter-group">
           <label htmlFor="concept-filter" className="filter-label">
-            <span className="filter-label__main">Concept</span>
+            Topic
           </label>
-          <div className="select-wrapper">
-            <select
-              id="concept-filter"
-              className="filter-select"
-              value={selectedConcept}
-              onChange={(e) => onConceptChange(e.target.value)}
-            >
-              <option value="All concepts">All concepts</option>
-              {CONCEPTS.map((concept) => (
-                <option key={concept} value={concept}>
-                  {concept}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            id="concept-filter"
+            className="filter-select"
+            value={selectedConcept}
+            onChange={(e) => onConceptChange(e.target.value)}
+          >
+            <option value="All concepts">All Topics</option>
+            {CONCEPTS.map((concept) => (
+              <option key={concept} value={concept}>
+                {concept}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Status Filter */}
         <div className="filter-group">
           <label htmlFor="status-filter" className="filter-label">
-            <span className="filter-label__main">Status</span>
+            Status
           </label>
-          <div className="select-wrapper">
-            <select
-              id="status-filter"
-              className="filter-select"
-              value={selectedStatus}
-              onChange={(e) => onStatusChange(e.target.value)}
-            >
-              <option value="All statuses">All statuses</option>
-              {STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            id="status-filter"
+            className="filter-select"
+            value={selectedStatus}
+            onChange={(e) => onStatusChange(e.target.value)}
+          >
+            <option value="All statuses">All Statuses</option>
+            {STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Clear Filters Action */}
-        <div className="filter-group filter-group--action">
-          <label className="filter-label filter-label--spacer" aria-hidden="true">&nbsp;</label>
+        <div className="filter-group">
           <button
             type="button"
             className="reset-filters-btn"
             onClick={onClearFilters}
             disabled={!hasActiveFilters}
-            title={hasActiveFilters ? "Reset all search and filter fields" : "No active filters to reset"}
           >
-            <span className="btn-icon" aria-hidden="true">↺</span>
-            <span>Clear filters</span>
+            <span aria-hidden="true">↺</span>
+            <span>Reset</span>
           </button>
         </div>
       </div>

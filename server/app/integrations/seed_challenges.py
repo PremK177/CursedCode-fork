@@ -7,46 +7,49 @@ SEED_CHALLENGES = [
     {
         "id": "last-k-total",
         "title": "Last K Total",
-        "description": "Return the total of the final k values in a list of numbers.",
-        "statement": "Write a function named `last_k_total(numbers, k)` that takes a list of integers `numbers` and an integer `k`. It returns the sum of the last `k` integers in the list. If `k` is 0, return 0.",
+        "description": "Return the total of the last k marks, or of all marks if k is larger than the list.",
+        "statement": "Write a function named `last_k_total(marks, k)` that takes a list of integers `marks` (possibly empty) and an integer `k` (0 or more). It returns the total of the last `k` marks, or the total of all marks if `k` is larger than the list.",
+        "function_signature": "def last_k_total(marks: list[int], k: int) -> int",
         "grade": "Grade 4",
         "difficulty": "Easy",
-        "tags": ["Lists", "Slicing"],
+        "tags": ["Lists", "Slicing", "Loops"],
         "estimatedTime": "10 min",
         "time_limit_ms": 500,
         "memory_limit_mb": 64,
-        "input_constraints": "0 ≤ len(numbers) ≤ 10⁵; -10⁹ ≤ numbers[i] ≤ 10⁹; 0 ≤ k ≤ len(numbers)",
-        "time_complexity": "O(k)",
-        "starterCode": "def last_k_total(numbers, k):\n    # Return the total of the last k values in numbers.\n    if k == 0:\n        return 0\n    return sum(numbers[-k:])\n",
+        "input_constraints": "0 ≤ len(marks) ≤ 10⁵; -10⁹ ≤ marks[i] ≤ 10⁹; k ≥ 0",
+        "time_complexity": "O(min(n, k))",
+        "starterCode": "def last_k_total(marks, k):\n    total = 0\n    for i in range(len(marks) - k, len(marks)):\n        total += marks[i]\n    return total\n",
         "example": {
-            "call": "last_k_total([3, 8, 2, 5], 2)",
-            "expected": "7",
-            "explanation": "The last 2 elements are 2 and 5. Their sum is 7."
+            "call": "last_k_total([10, 20, 30, 40], 2)",
+            "expected": "70",
+            "explanation": "The last 2 marks are 30 and 40. Their total is 70."
         },
         "visibleTests": [
-            {"call": "last_k_total([3, 8, 2, 5], 2)", "expected": "7"},
-            {"call": "last_k_total([10, 20, 30], 1)", "expected": "30"},
-            {"call": "last_k_total([4, 6, 8], 0)", "expected": "0"}
+            {"call": "last_k_total([10, 20, 30, 40], 2)", "expected": "70"},
+            {"call": "last_k_total([5, 5, 5], 3)", "expected": "15"},
+            {"call": "last_k_total([7], 1)", "expected": "7"}
         ],
         "hiddenTests": [
-            {"call": "last_k_total([1, 2, 3, 4, 5], 5)", "expected": "15"},
+            {"call": "last_k_total([1, 2, 3, 4, 5], 0)", "expected": "0"},
             {"call": "last_k_total([], 0)", "expected": "0"},
-            {"call": "last_k_total([-5, -10, 20], 2)", "expected": "10"},
-            {"call": "last_k_total([100], 1)", "expected": "100"},
-            {"call": "last_k_total([7, 3, 1, 9, 4], 3)", "expected": "14"}
+            {"call": "last_k_total([], 3)", "expected": "0"},
+            {"call": "last_k_total([2, 5], 3)", "expected": "7"},
+            {"call": "last_k_total([10, 20], 4)", "expected": "30"},
+            {"call": "last_k_total([-5, 10, 15], 2)", "expected": "25"}
         ],
         "hints": [
-            "Check what happens when k is 0. Python's slice `numbers[-0:]` will take the entire list from index 0!",
-            "How can you make sure your slice start index never goes below zero when k is larger than the list length?",
-            "Make sure you handle cases where k is greater than the length of the list.",
-            "What single value should you compare k against before slicing, so that short lists never cause an IndexError?"
+            "Your three visible examples never ask for more marks than the list holds. What should last_k_total return when k is bigger than the list?",
+            "Work out last_k_total([2, 5], 3) by hand. Which index does your loop start at, and what does marks[-1] mean in Python?",
+            "In Python a negative index counts back from the end, so some marks get added twice or raise IndexError on an empty list. Your start index must never go below 0.",
+            "Python has a built-in that returns the larger of two numbers. Use it to work out the start index once, before the loop."
         ]
     },
     {
-        "id": "countpasses",
+        "id": "count-passes",
         "title": "Count Passes",
-        "description": "Count the number of test scores that are 40 or more.",
-        "statement": "Write a function named `count_passes(marks)` that takes a list of integer `marks` and returns how many of them are 40 or more.",
+        "description": "Count how many marks in a list are 40 or more.",
+        "statement": "Write a function named `count_passes(marks)` that takes a list of integer `marks` (possibly empty) and returns how many of them are 40 or more.",
+        "function_signature": "def count_passes(marks: list[int]) -> int",
         "grade": "Grade 4",
         "difficulty": "Easy",
         "tags": ["Loops", "Comparison"],
@@ -55,7 +58,7 @@ SEED_CHALLENGES = [
         "memory_limit_mb": 64,
         "input_constraints": "0 ≤ len(marks) ≤ 10⁵; -10⁹ ≤ marks[i] ≤ 10⁹",
         "time_complexity": "O(n)",
-        "starterCode": "def count_passes(marks):\n    # Count marks that are 40 or more\n    count = 0\n    for mark in marks:\n        if mark >= 40:\n            count += 1\n    return count\n",
+        "starterCode": "def count_passes(marks):\n    count = 0\n    for mark in marks:\n        if mark > 40:\n            count += 1\n    return count\n",
         "example": {
             "call": "count_passes([30, 40, 50])",
             "expected": "2",
@@ -75,26 +78,27 @@ SEED_CHALLENGES = [
             {"call": "count_passes([40, 39])", "expected": "1"}
         ],
         "hints": [
-            "Check the boundary: does a mark exactly equal to 40 count?",
-            "Remember '40 or more' means use `>=`, not `>`.",
-            "How do you accumulate a running total across all items in a list?",
-            "What should your function return after examining every mark in the list?"
+            "What happens when a student's mark is exactly 40? Should that count as a pass?",
+            "Trace your function by hand on count_passes([40, 40, 40]). Which branch does your if-statement take when mark is 40?",
+            "A strict greater-than comparison excludes the boundary value itself, so every mark of 40 is skipped.",
+            "Update your comparison operator so that values equal to the passing threshold of 40 are included in the count."
         ]
     },
     {
         "id": "first-n-squares",
         "title": "First N Squares",
-        "description": "Build and return a list containing the squares of numbers from 1 through n.",
-        "statement": "Write a function named `first_n_squares(n)` that receives a positive integer `n` and returns a list containing the squares of integers from 1 up to and including `n` in ascending order.",
+        "description": "Build and return the list [1, 4, 9, ..., n²], or [] when n is 0.",
+        "statement": "Write a function named `first_n_squares(n)` that receives an integer `n` (0 or more) and returns the list `[1, 4, 9, ..., n²]`, or `[]` when `n` is 0.",
+        "function_signature": "def first_n_squares(n: int) -> list[int]",
         "grade": "Grade 4",
         "difficulty": "Easy",
         "tags": ["Loops", "Lists"],
         "estimatedTime": "10 min",
-        "time_limit_ms": 300,
+        "time_limit_ms": 500,
         "memory_limit_mb": 64,
         "input_constraints": "0 ≤ n ≤ 10⁵",
         "time_complexity": "O(n)",
-        "starterCode": "def first_n_squares(n):\n    # Build list of squares from 1 up to n\n    return [i * i for i in range(1, n + 1)]\n",
+        "starterCode": "def first_n_squares(n):\n    result = []\n    for i in range(1, n):\n        result.append(i * i)\n    return result\n",
         "example": {
             "call": "first_n_squares(4)",
             "expected": "[1, 4, 9, 16]",
@@ -113,30 +117,31 @@ SEED_CHALLENGES = [
             {"call": "first_n_squares(10)", "expected": "[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]"}
         ],
         "hints": [
-            "Remember that range in Python is exclusive at the stop index.",
-            "To include n, your range stop value must be n + 1.",
-            "If n is 0 or negative, the result should be an empty list [].",
-            "What one-liner builds a list of squares from 1 up to n using range and squaring each value?"
+            "Compare the length of the list your function returns with n. How many squares are in your output for n = 4?",
+            "Trace first_n_squares(1) by hand. Which numbers does range(1, 1) produce in Python?",
+            "In Python, range(start, stop) stops one integer before stop, so the final value n is never reached.",
+            "Adjust the upper bound of your range call so the loop includes n before stopping."
         ]
     },
     {
-        "id": "middlethree",
+        "id": "middle-three",
         "title": "Middle Three",
-        "description": "Extract and return the middle three items from an odd-length sequence.",
-        "statement": "Write a function named `middle_three(items)` that receives an odd-length list with at least 3 elements. Return a new list containing the exact 3 items situated at the center of the list.",
+        "description": "Return the middle three items as a list, or the whole list if it has fewer than 3 items.",
+        "statement": "Write a function named `middle_three(items)` that takes a list `items` of odd length, or with fewer than 3 items. Return the middle three items as a list, or the whole list if it has fewer than 3 items.",
+        "function_signature": "def middle_three(items: list) -> list",
         "grade": "Grade 3",
         "difficulty": "Medium",
-        "tags": ["Lists", "Indexing"],
+        "tags": ["Lists", "Indexing", "Slicing"],
         "estimatedTime": "15 min",
         "time_limit_ms": 500,
         "memory_limit_mb": 64,
-        "input_constraints": "3 ≤ len(items) ≤ 10⁵; len(items) is always odd",
+        "input_constraints": "0 ≤ len(items) ≤ 10⁵; len(items) is odd or < 3",
         "time_complexity": "O(1)",
-        "starterCode": "def middle_three(items):\n    # Return the three middle items of an odd-length list\n    mid = len(items) // 2\n    return items[mid - 1 : mid + 2]\n",
+        "starterCode": "def middle_three(items):\n    mid = len(items) // 2\n    return items[mid - 1 : mid + 1]\n",
         "example": {
             "call": "middle_three([1, 2, 3, 4, 5])",
             "expected": "[2, 3, 4]",
-            "explanation": "The center element is 3. The middle 3 items are 2, 3, 4."
+            "explanation": "The center element is 3. The middle 3 items are [2, 3, 4]."
         },
         "visibleTests": [
             {"call": "middle_three([1, 2, 3, 4, 5])", "expected": "[2, 3, 4]"},
@@ -144,29 +149,35 @@ SEED_CHALLENGES = [
             {"call": "middle_three([10, 20, 30, 40, 50, 60, 70])", "expected": "[30, 40, 50]"}
         ],
         "hiddenTests": [
+            {"call": "middle_three([])", "expected": "[]"},
+            {"call": "middle_three([42])", "expected": "[42]"},
+            {"call": "middle_three([1, 2])", "expected": "[1, 2]"},
             {"call": "middle_three([9, 8, 7, 6, 5])", "expected": "[8, 7, 6]"},
             {"call": "middle_three([1, 2, 3, 4, 5, 6, 7, 8, 9])", "expected": "[4, 5, 6]"},
-            {"call": "middle_three([0, 0, 1, 0, 0])", "expected": "[0, 1, 0]"},
-            {"call": "middle_three(['x', 'y', 'z'])", "expected": "['x', 'y', 'z']"},
-            {"call": "middle_three([100, 200, 300, 400, 500])", "expected": "[200, 300, 400]"}
+            {"call": "middle_three([0, 0, 1, 0, 0])", "expected": "[0, 1, 0]"}
         ],
         "hints": [
-            "Find the middle index using integer division: `mid = len(items) // 2`.",
-            "The element directly before the center is at `mid - 1`, and the element after is at `mid + 1`.",
-            "Remember that slice end index is exclusive in Python.",
-            "What slice starting at `mid - 1` and ending two positions past the center gives you exactly three items?"
+            "Check two things: how many elements your slice returns on a 5-item list, and what happens when the list has fewer than 3 items.",
+            "Work out middle_three([1, 2, 3, 4, 5]) by hand. When mid is 2, how many elements are in items[1:3], and what happens when items is [42]?",
+            "A Python slice items[start:stop] has length stop - start, and when len(items) < 3, mid - 1 becomes negative.",
+            "First check if the list length is under 3 to return a copy of the list early, then make sure your slice stop index is 2 positions past mid."
         ]
     },
     {
         "id": "word-boundary",
         "title": "Word Boundary",
         "description": "Determine whether a sentence starts or ends with a specific target keyword.",
-        "statement": "Write a function named `is_at_boundary(sentence, keyword)` that checks if the given `sentence` either begins with or concludes with the exact string `keyword` (case-sensitive).",
+        "statement": "Write a function named `is_at_boundary(sentence, keyword)` that checks if the given `sentence` either begins with or concludes with the exact string `keyword` (case-sensitive). If `keyword` is empty or `sentence` is shorter than `keyword`, return `False`.",
+        "function_signature": "def is_at_boundary(sentence: str, keyword: str) -> bool",
         "grade": "Grade 3",
         "difficulty": "Medium",
-        "tags": ["Strings", "Comparison"],
+        "tags": ["Strings", "Comparison", "Slicing"],
         "estimatedTime": "15 min",
-        "starterCode": "def is_at_boundary(sentence, keyword):\n    # Check if sentence starts or ends with keyword\n    return sentence.startswith(keyword) or sentence.endswith(keyword)\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(sentence), len(keyword) ≤ 10⁴",
+        "time_complexity": "O(len(keyword))",
+        "starterCode": "def is_at_boundary(sentence, keyword):\n    k = len(keyword)\n    return sentence[:k] == keyword and sentence[-k:] == keyword\n",
         "example": {
             "call": "is_at_boundary(\"curse energy flows\", \"curse\")",
             "expected": "True",
@@ -185,22 +196,27 @@ SEED_CHALLENGES = [
             {"call": "is_at_boundary(\"\", \"curse\")", "expected": "False"}
         ],
         "hints": [
-            "Python strings have built-in methods `.startswith()` and `.endswith()`.",
-            "Make sure the check is case-sensitive as requested.",
-            "Combine both conditions using the logical `or` operator.",
-            "Which two string methods should you call to check if the sentence begins with OR concludes with the keyword?"
+            "Read the problem statement carefully: does the sentence need to both start AND end with the keyword, or is either one enough?",
+            "Trace is_at_boundary('curse energy flows', 'curse'). What does sentence[:k] == keyword evaluate to, and what does sentence[-k:] == keyword evaluate to?",
+            "Using the logical 'and' requires both ends to match simultaneously, which fails whenever the keyword is only at the start or only at the end.",
+            "Combine the start check and end check with the logical operator that succeeds when at least one side is True, and guard against empty inputs."
         ]
     },
     {
         "id": "pair-sum",
         "title": "Pair Sum",
-        "description": "Find two distinct numbers in an array whose sum equals the specified target value.",
-        "statement": "Write a function named `has_pair_sum(numbers, target)` that returns `True` if any two distinct entries in the list `numbers` sum to `target`, otherwise `False`.",
+        "description": "Find two distinct elements in a list whose sum equals the target value.",
+        "statement": "Write a function named `has_pair_sum(numbers, target)` that returns `True` if any two elements at different positions in the list `numbers` sum to `target`, otherwise `False`.",
+        "function_signature": "def has_pair_sum(numbers: list[int], target: int) -> bool",
         "grade": "Grade 3",
         "difficulty": "Medium",
         "tags": ["Loops", "Lists"],
         "estimatedTime": "20 min",
-        "starterCode": "def has_pair_sum(numbers, target):\n    # Return True if two numbers sum to target\n    seen = set()\n    for num in numbers:\n        if (target - num) in seen:\n            return True\n        seen.add(num)\n    return False\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(numbers) ≤ 10⁴",
+        "time_complexity": "O(n)",
+        "starterCode": "def has_pair_sum(numbers, target):\n    for x in numbers:\n        if (target - x) in numbers:\n            return True\n    return False\n",
         "example": {
             "call": "has_pair_sum([2, 7, 11, 15], 9)",
             "expected": "True",
@@ -219,22 +235,27 @@ SEED_CHALLENGES = [
             {"call": "has_pair_sum([1, 2, 4], 8)", "expected": "False"}
         ],
         "hints": [
-            "Be careful not to add a number to itself unless it appears twice in the list.",
-            "A hash set allows O(1) lookup of the needed complement `(target - num)`.",
-            "For each number, check if `target - num` is already in your `seen` set before adding `num`.",
-            "If the loop ends without finding a complement, return `False`."
+            "What happens when target is twice a single element in the list, such as target = 10 and numbers = [3, 5, 1]?",
+            "Trace has_pair_sum([5], 10) by hand. When x is 5, what is target - x, and is it in numbers?",
+            "Checking (target - x) in numbers allows the same element at the same index to pair with itself.",
+            "Keep track of numbers you have already visited before the current index so you only pair two distinct positions."
         ]
     },
     {
         "id": "mirror-check",
         "title": "Mirror Check",
-        "description": "Verify if a string reads the same forwards and backwards, ignoring case.",
-        "statement": "Write a function named `is_mirror(text)` that returns `True` if `text` is a palindrome when comparing lowercase characters only, otherwise `False`.",
+        "description": "Verify if a string reads the same forwards and backwards, ignoring case and non-alphanumeric characters.",
+        "statement": "Write a function named `is_mirror(text)` that returns `True` if `text` is a palindrome when comparing alphanumeric characters case-insensitively, otherwise `False`.",
+        "function_signature": "def is_mirror(text: str) -> bool",
         "grade": "Grade 3",
         "difficulty": "Medium",
         "tags": ["Strings", "Indexing"],
         "estimatedTime": "15 min",
-        "starterCode": "def is_mirror(text):\n    # Check if text is a palindrome, case-insensitive\n    cleaned = ''.join(ch.lower() for ch in text if ch.isalnum())\n    return cleaned == cleaned[::-1]\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(text) ≤ 10⁵",
+        "time_complexity": "O(n)",
+        "starterCode": "def is_mirror(text):\n    cleaned = text.lower()\n    return cleaned == cleaned[::-1]\n",
         "example": {
             "call": "is_mirror(\"Level\")",
             "expected": "True",
@@ -253,22 +274,27 @@ SEED_CHALLENGES = [
             {"call": "is_mirror(\"12321\")", "expected": "True"}
         ],
         "hints": [
-            "Ignore non-alphanumeric characters (spaces, punctuation) using `.isalnum()`.",
-            "Convert all characters to lowercase using `.lower()` before checking.",
-            "What is the simplest way to test if a cleaned string reads the same in reverse?",
-            "An empty string is trivially a palindrome and should return `True`."
+            "Look at the third visible test case: why does a multi-word palindrome fail when you only lowercase the string?",
+            "Trace what cleaned[::-1] looks like when spaces or apostrophes are left inside the string.",
+            "Spaces and punctuation are not symmetric in phrases like 'A man a plan a canal Panama', so they cause the reversed comparison to fail.",
+            "Filter the string to keep only alphanumeric characters (using a character method) in lowercase before comparing with its reverse."
         ]
     },
     {
         "id": "common-start",
         "title": "Common Start",
         "description": "Identify the longest common starting prefix shared across a list of strings.",
-        "statement": "Write a function named `common_start(words)` that returns the longest string prefix shared by every word in the given list. If there is no common prefix, return `\"\"`.",
+        "statement": "Write a function named `common_start(words)` that returns the longest string prefix shared by every word in the given list. If the list is empty or there is no common prefix, return `\"\"`.",
+        "function_signature": "def common_start(words: list[str]) -> str",
         "grade": "Grade 2",
         "difficulty": "Hard",
         "tags": ["Strings", "Loops"],
         "estimatedTime": "25 min",
-        "starterCode": "def common_start(words):\n    # Find longest shared prefix\n    if not words:\n        return \"\"\n    prefix = words[0]\n    for word in words[1:]:\n        while not word.startswith(prefix):\n            prefix = prefix[:-1]\n            if not prefix:\n                return \"\"\n    return prefix\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(words) ≤ 10⁴",
+        "time_complexity": "O(S) where S is total characters",
+        "starterCode": "def common_start(words):\n    prefix = words[0]\n    for word in words[1:]:\n        while not word.startswith(prefix):\n            prefix = prefix[:-1]\n    return prefix\n",
         "example": {
             "call": "common_start([\"domain\", \"domino\", \"domestic\"])",
             "expected": "\"dom\"",
@@ -287,22 +313,27 @@ SEED_CHALLENGES = [
             {"call": "common_start([\"prefix\", \"prefer\", \"prepare\"])", "expected": "\"pre\""}
         ],
         "hints": [
-            "Start by checking if `words` is empty. If so, return `\"\"` immediately.",
-            "Initialize your prefix candidate to the first word in the list.",
-            "Iterate through subsequent words; while the word doesn't start with the prefix, shorten prefix by one character: `prefix = prefix[:-1]`.",
-            "If prefix becomes empty, no common prefix exists; return `\"\"`."
+            "All three visible tests pass, but what happens when the input list words is completely empty?",
+            "Trace the very first line of your function when words is []. Which index is it trying to read?",
+            "Indexing words[0] on an empty list raises an IndexError before the loop even starts.",
+            "Add a check at the start of the function to handle an empty list before reading the first element."
         ]
     },
     {
         "id": "missing-step",
         "title": "Missing Step",
-        "description": "Find the single missing value in an otherwise contiguous arithmetic progression.",
-        "statement": "Write a function named `find_missing_step(sequence)` that receives an arithmetic sequence of numbers where one number is missing. Return that missing number.",
+        "description": "Find the single missing value in an arithmetic progression.",
+        "statement": "Write a function named `find_missing_step(sequence)` that receives an arithmetic sequence of at least 3 numbers where exactly one interior number is missing. Return that missing number.",
+        "function_signature": "def find_missing_step(sequence: list[int]) -> int",
         "grade": "Grade 2",
         "difficulty": "Hard",
-        "tags": ["Lists", "Comparison"],
+        "tags": ["Lists", "Comparison", "Loops"],
         "estimatedTime": "20 min",
-        "starterCode": "def find_missing_step(sequence):\n    # Find the missing element in arithmetic sequence\n    n = len(sequence)\n    diff = (sequence[-1] - sequence[0]) // n\n    for i in range(n - 1):\n        if sequence[i + 1] - sequence[i] != diff:\n            return sequence[i] + diff\n    return sequence[0]\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "3 ≤ len(sequence) ≤ 10⁵",
+        "time_complexity": "O(n)",
+        "starterCode": "def find_missing_step(sequence):\n    n = len(sequence)\n    diff = (sequence[-1] - sequence[0]) // (n - 1)\n    for i in range(n - 1):\n        if sequence[i + 1] - sequence[i] != diff:\n            return sequence[i] + diff\n    return sequence[0]\n",
         "example": {
             "call": "find_missing_step([2, 4, 8, 10])",
             "expected": "6",
@@ -321,10 +352,10 @@ SEED_CHALLENGES = [
             {"call": "find_missing_step([2, 6, 8])", "expected": "4"}
         ],
         "hints": [
-            "In an arithmetic sequence of length n with 1 missing term, the total step count is n.",
-            "Calculate expected difference: `diff = (sequence[-1] - sequence[0]) // len(sequence)`.",
-            "Loop through adjacent pairs; if `sequence[i + 1] - sequence[i] != diff`, the missing number is `sequence[i] + diff`.",
-            "This approach handles both increasing and decreasing progressions correctly."
+            "Think about how many total steps exist between the first and last value when one number is missing from the sequence.",
+            "Work out diff on [2, 4, 8, 10] by hand. Here n is 4, and the full sequence without a gap would have 5 numbers (4 steps).",
+            "Dividing (sequence[-1] - sequence[0]) by (n - 1) forgets to count the missing step itself, producing the wrong step size.",
+            "Divide the total span between the last and first element by n (the number of steps including the missing one)."
         ]
     },
     {
@@ -332,11 +363,16 @@ SEED_CHALLENGES = [
         "title": "Balanced Brackets",
         "description": "Check whether all brackets in a string have matching and correctly nested closers.",
         "statement": "Write a function named `is_balanced(expr)` that returns `True` if all parentheses `()`, square brackets `[]`, and curly braces `{}` are correctly paired and nested.",
+        "function_signature": "def is_balanced(expr: str) -> bool",
         "grade": "Grade 2",
         "difficulty": "Hard",
-        "tags": ["Strings", "Loops"],
+        "tags": ["Strings", "Loops", "Lists"],
         "estimatedTime": "25 min",
-        "starterCode": "def is_balanced(expr):\n    # Check if brackets are balanced and properly nested\n    stack = []\n    pairs = {')': '(', ']': '[', '}': '{'}\n    for ch in expr:\n        if ch in pairs.values():\n            stack.append(ch)\n        elif ch in pairs:\n            if not stack or stack.pop() != pairs[ch]:\n                return False\n    return len(stack) == 0\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(expr) ≤ 10⁵",
+        "time_complexity": "O(n)",
+        "starterCode": "def is_balanced(expr):\n    stack = []\n    pairs = {')': '(', ']': '[', '}': '{'}\n    for ch in expr:\n        if ch in pairs.values():\n            stack.append(ch)\n        elif ch in pairs:\n            if not stack or stack.pop() != pairs[ch]:\n                return False\n    return True\n",
         "example": {
             "call": "is_balanced(\"{[()]}\")",
             "expected": "True",
@@ -355,22 +391,27 @@ SEED_CHALLENGES = [
             {"call": "is_balanced(\"{[]}\")", "expected": "True"}
         ],
         "hints": [
-            "Use a stack (a Python list with `.append()` and `.pop()`).",
-            "When encountering an opening bracket, push it onto the stack.",
-            "When encountering a closing bracket, check if the stack is non-empty and the top matches.",
-            "What condition must hold for all brackets to be considered properly matched and nested?"
+            "What happens when the input string contains only opening brackets, like '({[' or '(()'?",
+            "Trace your function on is_balanced('({['). What is inside stack when the loop finishes, and what does the final line return?",
+            "Returning True unconditionally at the end ignores any unclosed opening brackets still sitting on the stack.",
+            "At the end of the loop, check that the stack is completely empty before returning True."
         ]
     },
     {
         "id": "frequency-count",
         "title": "Character Frequency",
-        "description": "Count occurrences of each unique character and return character counts.",
-        "statement": "Write a function named `char_frequency(text)` that returns a dictionary mapping each distinct lowercase character in `text` to its total frequency count. Ignore spaces.",
+        "description": "Count occurrences of each unique character in lowercase, ignoring spaces.",
+        "statement": "Write a function named `char_frequency(text)` that returns a dictionary mapping each distinct lowercase character in `text` to its total frequency count. Ignore whitespace characters.",
+        "function_signature": "def char_frequency(text: str) -> dict[str, int]",
         "grade": "Grade 3",
         "difficulty": "Medium",
-        "tags": ["Strings", "Lists"],
+        "tags": ["Strings", "Loops"],
         "estimatedTime": "15 min",
-        "starterCode": "def char_frequency(text):\n    # Return count of each character, excluding whitespace\n    freq = {}\n    for ch in text.lower():\n        if not ch.isspace():\n            freq[ch] = freq.get(ch, 0) + 1\n    return freq\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(text) ≤ 10⁵",
+        "time_complexity": "O(n)",
+        "starterCode": "def char_frequency(text):\n    freq = {}\n    for ch in text:\n        if not ch.isspace():\n            freq[ch] = freq.get(ch, 0) + 1\n    return freq\n",
         "example": {
             "call": "char_frequency(\"seal\")",
             "expected": "{'s': 1, 'e': 1, 'a': 1, 'l': 1}",
@@ -389,22 +430,27 @@ SEED_CHALLENGES = [
             {"call": "char_frequency(\"  \")", "expected": "{}"}
         ],
         "hints": [
-            "Convert each character to lowercase with `.lower()`.",
-            "Skip spaces using `if not ch.isspace():`.",
-            "Use dictionary `.get(ch, 0) + 1` to increment counts safely.",
-            "Return the dictionary directly."
+            "All three visible examples use lowercase letters, but what happens when the input string contains uppercase letters?",
+            "Trace your function on a word with mixed case like 'GoJo'. Does 'G' get counted together with 'g'?",
+            "Iterating over text directly without normalizing case treats uppercase and lowercase letters as separate keys.",
+            "Convert the input text (or each character) to lowercase before updating the dictionary counts."
         ]
     },
     {
         "id": "streak-counter",
         "title": "Longest Streak",
-        "description": "Calculate the maximum length of consecutive true or matching conditions in a list.",
+        "description": "Calculate the maximum length of consecutive occurrences of target in a list.",
         "statement": "Write a function named `longest_streak(values, target)` that returns the maximum number of consecutive times `target` appears in the sequence `values`.",
+        "function_signature": "def longest_streak(values: list, target: any) -> int",
         "grade": "Grade 4",
         "difficulty": "Easy",
         "tags": ["Loops", "Comparison"],
         "estimatedTime": "10 min",
-        "starterCode": "def longest_streak(values, target):\n    # Return max consecutive occurrences of target\n    max_streak = current = 0\n    for val in values:\n        if val == target:\n            current += 1\n            if current > max_streak:\n                max_streak = current\n        else:\n            current = 0\n    return max_streak\n",
+        "time_limit_ms": 500,
+        "memory_limit_mb": 64,
+        "input_constraints": "0 ≤ len(values) ≤ 10⁵",
+        "time_complexity": "O(n)",
+        "starterCode": "def longest_streak(values, target):\n    max_streak = 0\n    current = 0\n    for val in values:\n        if val == target:\n            current += 1\n        else:\n            if current > max_streak:\n                max_streak = current\n            current = 0\n    return max_streak\n",
         "example": {
             "call": "longest_streak([1, 1, 0, 1, 1, 1, 0], 1)",
             "expected": "3",
@@ -423,10 +469,10 @@ SEED_CHALLENGES = [
             {"call": "longest_streak([4, 5, 6], 10)", "expected": "0"}
         ],
         "hints": [
-            "Keep two tracking variables: `current_streak` and `max_streak`.",
-            "When `val == target`, increment `current_streak` and update `max_streak = max(max_streak, current_streak)`.",
-            "When `val != target`, reset `current_streak = 0`.",
-            "After checking all elements, return `max_streak`."
+            "What happens when the longest streak of target values is at the very end of the list, with no non-matching element after it?",
+            "Trace longest_streak([7, 7, 7, 7], 7) by hand. Does the else branch ever run?",
+            "Because max_streak is only updated inside the else branch, a streak that continues until the end of the list is never recorded.",
+            "Update max_streak immediately whenever current increases (or once more after the loop finishes)."
         ]
     }
 ]

@@ -4,55 +4,46 @@ import Footer from '../components/Footer.jsx';
 import GradeBadge from '../components/GradeBadge.jsx';
 import { getLearnerProfile } from '../services/api.js';
 
-const JJK_RANKS_LEGEND = [
-  { grade: 'Grade 4', rank: 'RANK IV', diff: 'Easy' },
-  { grade: 'Grade 3', rank: 'RANK III', diff: 'Medium' },
-  { grade: 'Grade 2', rank: 'RANK II', diff: 'Hard' },
-  { grade: 'Semi-Grade 1', rank: 'SEMI-RANK I', diff: 'Advanced' },
-  { grade: 'Grade 1', rank: 'RANK I', diff: 'Expert' },
-  { grade: 'Special Grade', rank: 'SPECIAL', diff: 'Supreme' }
-];
-
 const MISTAKE_METADATA = {
   off_by_one: {
-    title: 'Off by one',
-    description: 'Your loop or index stops one step too early or goes one step too far.'
+    title: 'Off-by-one error',
+    description: 'Your loop or slice stops one step too early or goes one step too far.'
   },
   unhandled_short_input: {
-    title: 'Short input not handled',
-    description: 'Your code breaks, or gives a wrong answer, on empty or very short input.'
+    title: 'Unhandled short or empty input',
+    description: 'Your code breaks or returns an incorrect result on empty lists, short inputs, or when k > len(items).'
   },
   print_not_return: {
     title: 'Printed instead of returned',
-    description: 'Your function prints a result instead of returning it.'
+    description: 'Your function prints a result to stdout instead of returning it.'
   },
   boundary_comparison: {
-    title: 'Boundary comparison',
-    description: 'A comparison such as less-than versus less-than-or-equal is off at the exact boundary value.'
+    title: 'Boundary comparison error',
+    description: 'A strict comparison (< or >) is used where an inclusive comparison (<= or >=) is needed at the boundary.'
   },
   mutates_input: {
-    title: 'Mutates input',
-    description: 'The function changes an input collection when it should preserve it.'
+    title: 'Mutates input collection',
+    description: 'The function modifies an input list in place when the caller expects it to remain unchanged.'
   }
 };
 
 const DEFAULT_MASTERY = [
-  { concept: 'Lists', score: 0.00, grade: 'Grade 4', difficulty: 'Easy' },
-  { concept: 'Loops', score: 0.00, grade: 'Grade 4', difficulty: 'Easy' },
-  { concept: 'Strings', score: 0.00, grade: 'Grade 4', difficulty: 'Easy' },
-  { concept: 'Slicing', score: 0.00, grade: 'Grade 4', difficulty: 'Easy' },
-  { concept: 'Indexing', score: 0.00, grade: 'Grade 4', difficulty: 'Easy' },
-  { concept: 'Comparison', score: 0.00, grade: 'Grade 4', difficulty: 'Easy' }
+  { concept: 'Lists', score: 0.0, grade: 'Grade 4', difficulty: 'Easy' },
+  { concept: 'Loops', score: 0.0, grade: 'Grade 4', difficulty: 'Easy' },
+  { concept: 'Strings', score: 0.0, grade: 'Grade 4', difficulty: 'Easy' },
+  { concept: 'Slicing', score: 0.0, grade: 'Grade 4', difficulty: 'Easy' },
+  { concept: 'Indexing', score: 0.0, grade: 'Grade 4', difficulty: 'Easy' },
+  { concept: 'Comparison', score: 0.0, grade: 'Grade 4', difficulty: 'Easy' }
 ];
 
-export default function ProgressPage({ onNavigate, learnerName }) {
+export default function ProgressPage({ onNavigate, learnerName, onUpdateLearnerName }) {
   const [masteryData, setMasteryData] = useState(DEFAULT_MASTERY);
   const [nextChallenge, setNextChallenge] = useState({
     challenge_id: 'last-k-total',
     title: 'Last K Total',
     grade: 'Grade 4',
     difficulty: 'Easy',
-    reason: 'Start with fundamental sequence slicing to establish your diagnostic foundation.'
+    reason: 'Start with fundamental sequence slicing and short-input guards to build your diagnostic baseline.'
   });
   const [recurringMistakes, setRecurringMistakes] = useState([]);
 
@@ -62,12 +53,14 @@ export default function ProgressPage({ onNavigate, learnerName }) {
       if (!active || !profile) return;
 
       if (Array.isArray(profile.mastery) && profile.mastery.length > 0) {
-        setMasteryData(profile.mastery.map((m) => ({
-          concept: m.concept,
-          score: m.score !== undefined ? m.score : (m.estimate || 0),
-          grade: m.grade || 'Grade 4',
-          difficulty: m.difficulty || 'Easy'
-        })));
+        setMasteryData(
+          profile.mastery.map((m) => ({
+            concept: m.concept,
+            score: m.score !== undefined ? m.score : m.estimate || 0,
+            grade: m.grade || 'Grade 4',
+            difficulty: m.difficulty || 'Easy'
+          }))
+        );
       }
 
       if (profile.next_challenge) {
@@ -79,88 +72,134 @@ export default function ProgressPage({ onNavigate, learnerName }) {
       }
     });
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [learnerName]);
 
   return (
     <div className="page-shell">
-      <Header currentPath="/progress" onNavigate={onNavigate} learnerName={learnerName} />
+      <Header
+        currentPath="/progress"
+        onNavigate={onNavigate}
+        learnerName={learnerName}
+        onUpdateLearnerName={onUpdateLearnerName}
+      />
 
       <main className="content-container">
-        <section className="page-intro">
-          <p className="eyebrow">
-            <span className="eyebrow-accent">// SORCERER RANK EVALUATION</span>
-            <span>Sorcerer Grade Evaluation</span>
-          </p>
-          <div className="intro-header">
-            <h1 className="page-title">
-              CONCEPT MASTERY &<br />
-              <span className="title-highlight">RANKING PROFILE.</span>
-            </h1>
-            <p className="intro-lead">
-              Diagnostic telemetry across core Python techniques. Mastery points are awarded exclusively through independent problem resolution without hint consumption.
+        <div className="page-header-row">
+          <div>
+            <h1 className="page-heading">Learner Progress &amp; Mastery</h1>
+            <p className="page-subheading">
+              Diagnostic telemetry for <strong>{learnerName}</strong>. Solving problems without hints grants a higher mastery boost than solving after hints.
             </p>
-          </div>
-        </section>
-
-        {/* Grade Legend Callout per rules.md 2.2 */}
-        <div className="sorcerer-ladder-callout">
-          <div className="ladder-header">
-            <span className="ladder-icon" aria-hidden="true">★</span>
-            <div className="ladder-title-group">
-              <span className="ladder-title">OFFICIAL JUJUTSU GRADE LADDER</span>
-              <span className="ladder-desc">Grade 4 is the starting level. Special Grade is the highest.</span>
-            </div>
-          </div>
-          <div className="ladder-ranks-track">
-            {JJK_RANKS_LEGEND.map((g, idx) => (
-              <div key={g.grade} className="ladder-step">
-                <span className="step-rank" aria-hidden="true">{g.rank}</span>
-                <span className="step-name">{g.grade}</span>
-                <span className="step-diff">{g.diff}</span>
-                {idx < JJK_RANKS_LEGEND.length - 1 && (
-                  <span className="step-divider" aria-hidden="true">›</span>
-                )}
-              </div>
-            ))}
           </div>
         </div>
 
-        {/* Next Challenge Recommendation */}
+        {/* Recommended Next Challenge Card */}
         {nextChallenge && (
-          <section className="priority-mission-card">
-            <div className="card-seal-corner card-seal-corner--tl" aria-hidden="true" />
-            <div className="card-seal-corner card-seal-corner--tr" aria-hidden="true" />
-            <div className="next-challenge__header">
-              <div>
-                <p className="eyebrow">
-                  <span className="eyebrow-accent">// NEXT MISSION</span>
-                  <span>Recommended Next Mission</span>
-                </p>
-                <h2 className="next-challenge__title">{nextChallenge.title || 'Next Mission'}</h2>
+          <section className="recommendation-banner" aria-label="Recommended next challenge">
+            <div>
+              <p className="recommendation-banner__kicker">Recommended Next Problem</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                <h2 className="recommendation-banner__title" style={{ margin: 0 }}>
+                  {nextChallenge.title || nextChallenge.challenge_id}
+                </h2>
+                <GradeBadge
+                  grade={nextChallenge.grade || 'Grade 4'}
+                  difficulty={nextChallenge.difficulty || 'Easy'}
+                  size="sm"
+                />
               </div>
-              <GradeBadge grade={nextChallenge.grade || 'Grade 4'} difficulty={nextChallenge.difficulty || 'Easy'} />
+              <p className="recommendation-banner__reason">
+                <strong>Why this problem:</strong> {nextChallenge.reason}
+              </p>
             </div>
-            <p className="next-challenge__reason">
-              <strong>Diagnostic Dispatch:</strong> {nextChallenge.reason}
-            </p>
+
             <button
               type="button"
-              className="primary-energy-btn next-challenge__btn"
+              className="btn-primary"
               onClick={() => onNavigate(`/challenges/${nextChallenge.challenge_id}`)}
             >
-              <span>Engage Mission</span>
-              <span className="btn-arrow" aria-hidden="true">→</span>
+              <span>Solve Recommended Problem</span>
+              <span aria-hidden="true">→</span>
             </button>
           </section>
         )}
 
-        {/* Concept Mastery Grid */}
-        <section className="mastery-section">
-          <div className="section-title-bar">
-            <h2 className="section-heading">Concept Breakdown</h2>
-            <span className="section-tag" aria-hidden="true">ANALYSIS</span>
+        {/* Recurring Mistake Patterns */}
+        <section>
+          <div className="section-header-bar">
+            <h2 className="section-heading">Recurring Mistake Patterns</h2>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              Flagged only when a core mistake appears across 2+ distinct problems
+            </span>
           </div>
+
+          <div className="mistakes-panel">
+            {recurringMistakes.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {recurringMistakes.map((m) => {
+                  const meta = MISTAKE_METADATA[m.category] || {
+                    title: m.category,
+                    description: `Observed across ${m.challenge_count} different challenges.`
+                  };
+                  return (
+                    <div key={m.category} className="recurring-mistake-card">
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <span className="mistake-tag-badge">{m.category}</span>
+                          <strong style={{ fontSize: '14px' }}>{meta.title}</strong>
+                        </div>
+                        <p style={{ margin: '0 0 6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                          {meta.description}
+                        </p>
+                        {Array.isArray(m.challenges) && m.challenges.length > 0 && (
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                              Seen in:
+                            </span>
+                            {m.challenges.map((slug) => (
+                              <button
+                                key={slug}
+                                type="button"
+                                className="topic-pill"
+                                onClick={() => onNavigate(`/challenges/${slug}`)}
+                              >
+                                {slug} ↗
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <span className="core-judge-badge">
+                        {m.challenge_count} Challenges
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: '15px' }}>No Recurring Mistakes Flagged</h3>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  One-off slips on a single problem are isolated so they do not clutter your recurring profile.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Concept Mastery Grid */}
+        <section>
+          <div className="section-header-bar">
+            <h2 className="section-heading">Concept Mastery Breakdown</h2>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              Scale: 0.00 to 1.00
+            </span>
+          </div>
+
           <div className="mastery-grid">
             {masteryData.map((item) => (
               <article key={item.concept} className="mastery-dossier-card">
@@ -176,48 +215,16 @@ export default function ProgressPage({ onNavigate, learnerName }) {
                     aria-valuemin="0"
                     aria-valuemax="100"
                     role="progressbar"
-                  ></div>
+                  />
                 </div>
                 <div className="mastery-card__footer">
-                  <span className="mastery-score-label">Rating: <strong>{item.score.toFixed(2)}</strong> / 1.00</span>
-                  <span className="mastery-pct-label">{Math.round(item.score * 100)}%</span>
+                  <span>
+                    Score: <strong>{item.score.toFixed(2)}</strong> / 1.00
+                  </span>
+                  <span>{Math.round(item.score * 100)}%</span>
                 </div>
               </article>
             ))}
-          </div>
-        </section>
-
-        {/* Recurring Mistakes Panel per rules.md */}
-        <section className="mistakes-section">
-          <div className="section-title-bar">
-            <h2 className="section-heading">Recurring Mistake Patterns</h2>
-            <span className="section-tag" aria-hidden="true">HISTORY</span>
-          </div>
-          <div className="mistakes-panel">
-            {recurringMistakes.length > 0 ? (
-              <div className="mistakes-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                {recurringMistakes.map((m) => {
-                  const meta = MISTAKE_METADATA[m.category] || {
-                    title: m.category,
-                    description: `Appeared across ${m.challenge_count} different trials.`
-                  };
-                  return (
-                    <div key={m.category} className="hint-step--revealed" style={{ width: '100%' }}>
-                      <span className="step-badge">{meta.title} · {m.challenge_count} Challenges</span>
-                      <span className="step-text">{meta.description}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <>
-                <div className="mistakes-empty-seal" aria-hidden="true">CLEARED</div>
-                <h3 className="mistakes-empty-title">No Recurring Mistakes Detected</h3>
-                <p className="empty-mistakes-text">
-                  Clean sorcery record. Diagnostic gap patterns are only flagged when identical error categories appear across multiple distinct challenges.
-                </p>
-              </>
-            )}
           </div>
         </section>
       </main>

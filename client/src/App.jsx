@@ -11,13 +11,12 @@ export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [learnerName, setLearnerName] = useState(() => {
     try {
-      return localStorage.getItem('cursedcode_learner_name') || 'zeroeight';
+      return localStorage.getItem('cursedcode_learner_name') || 'rohan';
     } catch {
-      return 'zeroeight';
+      return 'rohan';
     }
   });
 
-  // Keep routing synchronized with browser history (back / forward buttons)
   useEffect(() => {
     const handlePopState = () => {
       setCurrentPath(window.location.pathname);
@@ -35,7 +34,7 @@ export default function App() {
   };
 
   const updateLearnerName = (name) => {
-    const cleanName = name.trim() || 'zeroeight';
+    const cleanName = name.trim() || 'rohan';
     setLearnerName(cleanName);
     try {
       localStorage.setItem('cursedcode_learner_name', cleanName);
@@ -44,7 +43,6 @@ export default function App() {
     }
   };
 
-  // Route matching
   if (currentPath === '/') {
     return (
       <LandingPage
@@ -62,6 +60,7 @@ export default function App() {
         challengeId={challengeId}
         onNavigate={navigate}
         learnerName={learnerName}
+        onUpdateLearnerName={updateLearnerName}
       />
     );
   }
@@ -71,6 +70,7 @@ export default function App() {
       <ProgressPage
         onNavigate={navigate}
         learnerName={learnerName}
+        onUpdateLearnerName={updateLearnerName}
       />
     );
   }
@@ -80,6 +80,7 @@ export default function App() {
       <MilestonesPage
         onNavigate={navigate}
         learnerName={learnerName}
+        onUpdateLearnerName={updateLearnerName}
       />
     );
   }
@@ -89,15 +90,16 @@ export default function App() {
       <ImportSheetPage
         onNavigate={navigate}
         learnerName={learnerName}
+        onUpdateLearnerName={updateLearnerName}
       />
     );
   }
 
-  // Default to Challenges list for '/challenges' and any unrecognized path
   return (
     <ChallengesPage
       onNavigate={navigate}
       learnerName={learnerName}
+      onUpdateLearnerName={updateLearnerName}
     />
   );
 }

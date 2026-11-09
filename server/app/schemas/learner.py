@@ -1,10 +1,11 @@
 from pydantic import BaseModel
-from typing import Any
 
 
 class RecurringMistake(BaseModel):
     category: str
+    tag: str = ""
     challenge_count: int
+    challenges: list[str] = []
 
 
 class ConceptMastery(BaseModel):

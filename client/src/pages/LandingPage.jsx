@@ -1,184 +1,120 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
-import { useTheme } from '../context/ThemeContext.jsx';
 
-const CODE_SAMPLE = 'def find_first_match(values):\n    for index, value in enumerate(values):\n        if value > 0:\n            return index\n    return -1';
+const SAMPLE_BUGGY_CODE = `def last_k_total(marks, k):
+    total = 0
+    for i in range(len(marks) - k, len(marks)):
+        total += marks[i]
+    return total`;
 
 export default function LandingPage({ onNavigate, learnerName, onUpdateLearnerName }) {
-  const { isLight } = useTheme();
-  const [inputName, setInputName] = useState(learnerName || '');
-  const [typedCode, setTypedCode] = useState(() => (
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches ? CODE_SAMPLE : ''
-  ));
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-
-    let characterIndex = 0;
-    let deleting = false;
-    let typingTimer;
-
-    const animateCode = () => {
-      if (deleting) {
-        characterIndex = Math.max(0, characterIndex - 2);
-        setTypedCode(CODE_SAMPLE.slice(0, characterIndex));
-        if (characterIndex === 0) deleting = false;
-      } else {
-        characterIndex = Math.min(CODE_SAMPLE.length, characterIndex + 1);
-        setTypedCode(CODE_SAMPLE.slice(0, characterIndex));
-        if (characterIndex === CODE_SAMPLE.length) deleting = true;
-      }
-
-      const pause = characterIndex === CODE_SAMPLE.length ? 1500 : characterIndex === 0 ? 500 : 32;
-      typingTimer = window.setTimeout(animateCode, pause);
-    };
-
-    typingTimer = window.setTimeout(animateCode, 450);
-
-    return () => window.clearTimeout(typingTimer);
-  }, []);
-
-  const logoSrc = isLight
-    ? '/assets/brand/brand_logo_wordmark_light.png'
-    : '/assets/brand/brand_logo_wordmark.png';
+  const [inputName, setInputName] = useState(learnerName || 'rohan');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const finalName = inputName.trim() || 'zeroeight';
-    onUpdateLearnerName(finalName);
+    const finalName = inputName.trim() || 'rohan';
+    if (onUpdateLearnerName) {
+      onUpdateLearnerName(finalName);
+    }
     onNavigate('/challenges');
   };
 
   return (
     <div className="landing-layout">
-      <video
-        className="landing-video-background"
-        src="/assets/landing_energy.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        aria-hidden="true"
-        tabIndex={-1}
+      <Header
+        currentPath="/"
+        onNavigate={onNavigate}
+        learnerName={learnerName}
+        onUpdateLearnerName={onUpdateLearnerName}
       />
-      {/* Decorative Manga Halftone Screentone Overlay */}
-      <div className="manga-screentone" aria-hidden="true" />
 
-      <main className="landing-hero">
-        <div className="landing-content">
-          <div className="landing-brand-header">
-            <img
-              key={logoSrc}
-              src={logoSrc}
-              alt="cursedCode"
-              className="landing-brand-logo"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
+      <main className="landing-main">
+        <div>
+          <div className="landing-kicker">
+            <span>●</span>
+            <span>Interactive Python Debugging &amp; Mastery Platform</span>
           </div>
 
-          <h1 className="hero-title hero-title--tagline">
-            Debugging the dark arts of software engineering.
+          <h1 className="landing-title">
+            Master edge cases, boundary conditions, and Python debugging.
           </h1>
 
-          <p className="hero-lead">
-            Dissect complex logic errors with zero distraction. Learn the exact boundary conditions that make Python code reliable — with progressive hints ready only when you hit a wall.
+          <p className="landing-lead">
+            Practice on realistic buggy code and algorithmic challenges. Run against visible and hidden edge-case suites inside an isolated sandbox, track recurring mistake patterns, and unlock progressive hints without giving away the answer.
           </p>
 
-          {/* Dossier Registration Card */}
-          <div className="sorcerer-dossier-card">
-            <div className="card-seal-corner card-seal-corner--tl" aria-hidden="true" />
-            <div className="card-seal-corner card-seal-corner--tr" aria-hidden="true" />
-            <div className="card-seal-corner card-seal-corner--bl" aria-hidden="true" />
-            <div className="card-seal-corner card-seal-corner--br" aria-hidden="true" />
-
-            <div className="dossier-header">
-              <span className="dossier-tag">LEARNER DOSSIER</span>
-              <span className="dossier-sub">REGISTRATION</span>
-            </div>
-
-            <form className="learner-form" onSubmit={handleSubmit}>
-              <div className="form-field">
-                <label className="learner-form__label" htmlFor="learner-input">
-                  Choose a learner pseudonym
-                </label>
-                <div className="input-affix-wrapper">
-                  <span className="input-prefix" aria-hidden="true">user:</span>
-                  <input
-                    id="learner-input"
-                    type="text"
-                    className="learner-form__input"
-                    value={inputName}
-                    onChange={(e) => setInputName(e.target.value)}
-                    placeholder="e.g. silentpanda"
-                    maxLength={24}
-                    autoComplete="off"
-                  />
-                </div>
+          <div className="landing-start-card">
+            <h2 className="landing-start-card__title">Start or Resume a Learner Session</h2>
+            <form className="landing-form-row" onSubmit={handleSubmit}>
+              <div className="landing-input-wrap">
+                <span className="landing-input-prefix" aria-hidden="true">learner:</span>
+                <input
+                  id="learner-input"
+                  type="text"
+                  className="landing-input"
+                  value={inputName}
+                  onChange={(e) => setInputName(e.target.value)}
+                  placeholder="e.g. rohan"
+                  maxLength={24}
+                  autoComplete="off"
+                  aria-label="Learner pseudonym"
+                />
               </div>
 
-              <button type="submit" className="primary-energy-btn">
-                <span>Start Training</span>
-                <span className="btn-arrow" aria-hidden="true">→</span>
+              <button type="submit" className="btn-primary">
+                <span>Open Problem Set</span>
+                <span aria-hidden="true">→</span>
               </button>
-
-              <p className="learner-form__tip">
-                <span className="tip-shield" aria-hidden="true">🛡</span>
-                Use a pseudonym — no real names or external accounts needed.
-              </p>
             </form>
+            <p className="landing-start-card__hint">
+              Your submissions, recurring mistakes, and concept mastery are tracked per learner ID.
+            </p>
+          </div>
+
+          <div className="landing-features">
+            <div className="landing-feature-card">
+              <h3 className="landing-feature-card__title">1. Isolated Sandbox</h3>
+              <p className="landing-feature-card__desc">
+                Every submission runs with strict time, memory, output, and filesystem limits.
+              </p>
+            </div>
+            <div className="landing-feature-card">
+              <h3 className="landing-feature-card__title">2. Hidden Edge Cases</h3>
+              <p className="landing-feature-card__desc">
+                See full inputs on visible tests and pass/fail verdicts on hidden boundary tests.
+              </p>
+            </div>
+            <div className="landing-feature-card">
+              <h3 className="landing-feature-card__title">3. 4-Step Progressive Hints</h3>
+              <p className="landing-feature-card__desc">
+                Nudge → concrete trace → failure concept → structural fix, never leaking raw code.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Pillars / Three Tenets */}
-        <aside className="landing-pillars" aria-label="Core training tenets">
-          <div className="landing-code-terminal" aria-label="Python code example">
-            <div className="landing-code-terminal__bar">
-              <span className="landing-code-lights" aria-hidden="true"><i /><i /><i /></span>
-              <span>practice.py</span>
-              <span className="landing-code-status">LIVE PREVIEW</span>
-            </div>
-            <pre className="landing-code-terminal__body"><code>{typedCode}<span className="landing-code-caret" aria-hidden="true" /></code></pre>
-            <div className="landing-code-terminal__footer"><span>Python 3</span><span>trace the logic · master each edge case</span></div>
+        <aside className="landing-preview-card" aria-label="Debugging preview">
+          <div className="landing-preview-card__bar">
+            <span className="landing-preview-dots" aria-hidden="true"><i /><i /><i /></span>
+            <span>last-k-total · solution.py</span>
+            <span>Python 3</span>
           </div>
-          <div className="pillars-header">
-            <span className="pillars-header__tag">TRAINING PROTOCOLS</span>
-            <span className="pillars-header__sub">3 PILLARS</span>
-          </div>
-
-          <div className="pillar-item">
-            <div className="pillar-num-badge">
-              <span className="pillar-num">01</span>
+          <pre className="landing-preview-code">
+            <code>{SAMPLE_BUGGY_CODE}</code>
+          </pre>
+          <div className="landing-preview-diagnostics">
+            <div className="landing-preview-row">
+              <span>Visible Tests (1–2)</span>
+              <span className="status-indicator status-indicator--solved">✓ 2 / 2 Passed</span>
             </div>
-            <div className="pillar-info">
-              <h3 className="pillar-title">Focused Workspace</h3>
-              <p className="pillar-text">
-                Clean, distraction-reduced editor preloaded with Python starters. No clunky IDE clutter.
-              </p>
+            <div className="landing-preview-row">
+              <span>Hidden Edge Cases (1–3)</span>
+              <span className="status-indicator status-indicator--attempted">✕ 1 Passed · 2 Wrong output</span>
             </div>
-          </div>
-
-          <div className="pillar-item">
-            <div className="pillar-num-badge">
-              <span className="pillar-num">02</span>
-            </div>
-            <div className="pillar-info">
-              <h3 className="pillar-title">Immediate Verdict</h3>
-              <p className="pillar-text">
-                Visible test assertions alongside rigorous hidden checks that test corner and edge cases privately.
-              </p>
-            </div>
-          </div>
-
-          <div className="pillar-item">
-            <div className="pillar-num-badge">
-              <span className="pillar-num">03</span>
-            </div>
-            <div className="pillar-info">
-              <h3 className="pillar-title">Progressive Insight</h3>
-              <p className="pillar-text">
-                Reveal structured diagnostic hints one step at a time without ever giving away the full answer.
-              </p>
+            <div className="landing-preview-row">
+              <span>Detected Pattern</span>
+              <span className="mistake-tag-badge">unhandled_short_input</span>
             </div>
           </div>
         </aside>

@@ -31,6 +31,23 @@ app.add_exception_handler(AppError, app_error_handler)
 app.include_router(router)
 
 
+@app.get("/")
+async def root():
+    return {
+        "service": "DebugDojo API",
+        "status": "ok",
+        "frontend_url": "http://localhost:5173",
+        "docs_url": "http://localhost:8000/docs",
+        "endpoints": {
+            "health": "/api/health",
+            "challenges": "/api/challenges",
+            "submit": "/api/submit",
+            "hint": "/api/hint",
+            "learner": "/api/learner/{learner_id}",
+        },
+    }
+
+
 @app.on_event("startup")
 async def on_startup():
     import logging

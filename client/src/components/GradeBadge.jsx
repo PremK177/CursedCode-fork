@@ -1,17 +1,23 @@
 export default function GradeBadge({ grade, difficulty, showDifficulty = true, size = 'md' }) {
-  const tooltipText = "Grade 4 is the starting level. Special Grade is the highest.";
+  const diffRaw = (difficulty || '').toLowerCase();
+  let tone = 'easy';
+  if (diffRaw.includes('hard') || diffRaw.includes('expert') || diffRaw.includes('supreme')) {
+    tone = 'hard';
+  } else if (diffRaw.includes('med') || diffRaw.includes('adv')) {
+    tone = 'medium';
+  }
+
+  const label = showDifficulty && difficulty ? difficulty : (grade || 'Easy');
+  const secondary = showDifficulty && grade && grade !== difficulty ? grade : null;
 
   return (
-    <span 
-      className={`grade-badge grade-badge--${size}`} 
-      title={tooltipText}
-      tabIndex={0}
-      aria-label={`${grade}${difficulty ? `, ${difficulty}` : ''}. ${tooltipText}`}
+    <span
+      className={`grade-badge grade-badge--${size} grade-badge--${tone}`}
+      title={secondary ? `${label} (${secondary})` : label}
+      aria-label={secondary ? `${label}, ${secondary}` : label}
     >
-      <span className="grade-badge__rank">{grade}</span>
-      {showDifficulty && difficulty && (
-        <span className="grade-badge__diff">· {difficulty}</span>
-      )}
+      <span className="grade-badge__rank">{label}</span>
+      {secondary && <span className="grade-badge__diff">· {secondary}</span>}
     </span>
   );
 }

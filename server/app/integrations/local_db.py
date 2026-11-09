@@ -160,12 +160,20 @@ def seed_initial_data():
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT count(*) FROM challenges")
-    if cur.fetchone()[0] > 0:
-        conn.close()
-        return
+    # Clean up legacy unhyphenated challenge slugs if present without submissions
+    for old_slug, new_slug in (("countpasses", "count-passes"), ("middlethree", "middle-three")):
+        cur.execute("SELECT id FROM challenges WHERE slug = ?", (old_slug,))
+        row = cur.fetchone()
+        if row:
+            old_id = row[0]
+            new_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"challenge.{new_slug}"))
+            cur.execute("UPDATE submissions SET challenge_id = ? WHERE challenge_id = ?", (new_id, old_id))
+            cur.execute("DELETE FROM test_cases WHERE challenge_id = ?", (old_id,))
+            cur.execute("DELETE FROM challenge_concepts WHERE challenge_id = ?", (old_id,))
+            cur.execute("DELETE FROM challenge_hints WHERE challenge_id = ?", (old_id,))
+            cur.execute("DELETE FROM challenges WHERE id = ?", (old_id,))
 
-    # 1. Mistake categories from 17-schema.md
+    # 1. Mistake categories from 17-schema.md & rules.md
     mistakes = [
         ('off_by_one', 'Off-by-one error', 'Loop or index range is one position too short or too long.',
          'Inspect loop bounds and first/last included index; check boundary cases.'),
@@ -176,7 +184,15 @@ def seed_initial_data():
         ('boundary_comparison', 'Boundary comparison', 'A strict comparison is used where an inclusive comparison is required, or vice versa.',
          'Test values exactly on the boundary.'),
         ('mutates_input', 'Mutates input', 'The function changes an input collection when it should preserve it.',
-         'Compare input snapshots before and after execution.')
+         'Compare input snapshots before and after execution.'),
+        ('syntax_or_name_error', 'Syntax or name error', 'Python could not run your code because of a typo, missing colon, or undefined name.',
+         'Check syntax and variable names.'),
+        ('infinite_loop', 'Runs too long', 'Your code kept running until time ran out.',
+         'Check loop termination conditions.'),
+        ('hardcoded_values', 'Hard-coded values', 'Your code passes examples by returning literal values rather than the general rule.',
+         'Check for literal constants matching visible tests.'),
+        ('other_logic_error', 'Logic error', 'Something in the logic is off. Use the explanation and hints to narrow it down.',
+         'Fallback for general logic errors.')
     ]
     for slug, name, desc, guidance in mistakes:
         cur.execute("""
@@ -240,7 +256,7 @@ def seed_initial_data():
                     ON CONFLICT(challenge_id, concept_id) DO NOTHING
                 """, (cid, concept_map[tag_slug]))
 
-        # Test cases
+        # Test cases (ordinal is 1..N within each visibility group, or sequential across challenge)
         ordinal = 1
         for vt in c.get('visibleTests', []):
             t_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"test.{c['id']}.vis.{ordinal}"))
@@ -248,6 +264,7 @@ def seed_initial_data():
                 INSERT INTO test_cases (id, challenge_id, visibility, ordinal, input_payload, expected_output, description, timeout_ms)
                 VALUES (?, ?, 'visible', ?, ?, ?, ?, 1500)
                 ON CONFLICT(challenge_id, visibility, ordinal) DO UPDATE SET
+                    input_payload=excluded.input_payload,
                     description=excluded.description,
                     expected_output=excluded.expected_output
             """, (t_id, cid, ordinal, json.dumps({"call": vt['call']}), str(vt['expected']), vt['call']))
@@ -259,6 +276,7 @@ def seed_initial_data():
                 INSERT INTO test_cases (id, challenge_id, visibility, ordinal, input_payload, expected_output, description, timeout_ms)
                 VALUES (?, ?, 'hidden', ?, ?, ?, ?, 1500)
                 ON CONFLICT(challenge_id, visibility, ordinal) DO UPDATE SET
+                    input_payload=excluded.input_payload,
                     description=excluded.description,
                     expected_output=excluded.expected_output
             """, (t_id, cid, ordinal, json.dumps({"call": ht['call']}), str(ht['expected']), ht['call']))
@@ -420,7 +438,10 @@ class TableInserter:
 
             cols = list(row_dict.keys())
             placeholders = ", ".join(["?"] * len(cols))
-            vals = [row_dict[c] for c in cols]
+            vals = [
+                json.dumps(row_dict[c]) if isinstance(row_dict[c], (list, dict)) else row_dict[c]
+                for c in cols
+            ]
 
             query = f"INSERT INTO {self.table_name} ({', '.join(cols)}) VALUES ({placeholders})"
             cur.execute(query, vals)

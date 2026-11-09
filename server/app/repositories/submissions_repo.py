@@ -1,4 +1,4 @@
-from supabase import Client
+from typing import Any
 from app.core.exceptions import NotFoundError
 from app.core.logging import get_logger
 
@@ -6,7 +6,7 @@ logger = get_logger(__name__)
 
 
 class SubmissionsRepo:
-    def __init__(self, db: Client):
+    def __init__(self, db: Any):
         self.db = db
 
     def create(self, learner_id: str, challenge_id: str, source_code: str) -> dict:

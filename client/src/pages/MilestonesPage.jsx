@@ -35,7 +35,7 @@ const MILESTONE_NODES = [
     subtitle: 'Entry into the Dojo',
     description: 'Awaken your computational instincts. The starting threshold where all cursed code exploration begins.',
     perks: ['Unlocked: Sandbox Execution Terminal', 'Unlocked: Real-time Output Inspection'],
-    recommendedChallenges: ['last-k-total', 'countpasses']
+    recommendedChallenges: ['last-k-total', 'count-passes']
   },
   {
     id: 'lvl-1',
@@ -48,7 +48,7 @@ const MILESTONE_NODES = [
     subtitle: 'List Slicing & Sequence Flow',
     description: 'Master negative offsets and sequence boundaries without succumbing to IndexError vulnerabilities.',
     perks: ['Unlocked: Diagnostic Mistake Taxonomy Tagging', 'Unlocked: Vector Verification Grid'],
-    recommendedChallenges: ['last-k-total', 'evensum']
+    recommendedChallenges: ['last-k-total', 'first-n-squares']
   },
   {
     id: 'lvl-2',
@@ -61,7 +61,7 @@ const MILESTONE_NODES = [
     subtitle: 'Iterative Control & Predicates',
     description: 'Command conditional branching and accumulator loops with strict mathematical precision.',
     perks: ['Unlocked: Hint Ladder Diagnostic Bot', 'Unlocked: Iteration Tracing Telemetry'],
-    recommendedChallenges: ['countpasses', 'findfirstgt']
+    recommendedChallenges: ['count-passes', 'middle-three']
   },
   {
     id: 'lvl-3',
@@ -130,7 +130,7 @@ const MILESTONE_NODES = [
   }
 ];
 
-export default function MilestonesPage({ onNavigate, learnerName = 'zeroeight' }) {
+export default function MilestonesPage({ onNavigate, learnerName = 'zeroeight', onUpdateLearnerName }) {
   const [challenges, setChallenges] = useState(CHALLENGES);
   const [selectedNodeId, setSelectedNodeId] = useState('lvl-0');
   const [profile, setProfile] = useState();
@@ -231,7 +231,7 @@ export default function MilestonesPage({ onNavigate, learnerName = 'zeroeight' }
 
   return (
     <div className="page-shell">
-      <Header currentPath="/milestones" onNavigate={onNavigate} learnerName={learnerName} />
+      <Header currentPath="/milestones" onNavigate={onNavigate} learnerName={learnerName} onUpdateLearnerName={onUpdateLearnerName} />
 
       <main className="content-container">
         {/* Page Intro Header */}
@@ -604,7 +604,6 @@ export default function MilestonesPage({ onNavigate, learnerName = 'zeroeight' }
 function TreeNodeCard({ node, state, isSelected, onClick }) {
   const isCompleted = state === 'completed';
   const isCurrent = state === 'current';
-  const isLocked = state === 'locked';
 
   return (
     <button

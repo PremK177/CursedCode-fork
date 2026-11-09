@@ -1,8 +1,7 @@
 from collections import defaultdict
 
-from supabase import Client
-from app.core.exceptions import NotFoundError
 from app.core.logging import get_logger
+from app.services.mistake_detector import CORE_MISTAKE_SLUGS
 
 logger = get_logger(__name__)
 
@@ -26,7 +25,6 @@ class LearnersRepo:
                 pass
             return row
 
-        # Create new pseudonymous learner
         created = (
             self.db.table("learners")
             .insert({"learner_key": learner_key})
@@ -49,8 +47,7 @@ class LearnersRepo:
             return []
 
     def get_recurring_mistakes(self, learner_id: str) -> list[dict]:
-        """Return mistake categories seen in >= 2 distinct challenges."""
-        # Submission ids for this learner, mapped to their challenge.
+        """Return core mistake categories seen in >= 2 distinct challenges."""
         subs = (
             self.db.table("submissions")
             .select("id, challenge_id")
@@ -63,7 +60,10 @@ class LearnersRepo:
         sub_ids = [r["id"] for r in rows]
         sub_to_challenge = {r["id"]: r["challenge_id"] for r in rows}
 
-        # Mistake categories attached to those submissions.
+        # Map challenge UUIDs to slugs for human-readable evidence
+        chals_resp = self.db.table("challenges").select("id, slug").execute()
+        uuid_to_slug = {c["id"]: c["slug"] for c in (chals_resp.data or [])}
+
         mistakes = (
             self.db.table("submission_mistakes")
             .select("submission_id, mistake_categories(slug)")
@@ -74,16 +74,21 @@ class LearnersRepo:
         cat_challenges: dict[str, set] = defaultdict(set)
         for m in (mistakes.data or []):
             cat = (m.get("mistake_categories") or {}).get("slug")
-            if not cat:
+            if not cat or cat not in CORE_MISTAKE_SLUGS:
                 continue
             challenge_id = sub_to_challenge.get(m["submission_id"])
             if challenge_id:
-                cat_challenges[cat].add(challenge_id)
+                slug = uuid_to_slug.get(challenge_id, str(challenge_id))
+                cat_challenges[cat].add(slug)
 
         result = [
-            {"slug": cat, "challenge_count": len(chals)}
+            {
+                "slug": cat,
+                "challenge_count": len(chals),
+                "challenges": sorted(chals),
+            }
             for cat, chals in cat_challenges.items()
             if len(chals) >= 2
         ]
-        result.sort(key=lambda x: x["challenge_count"], reverse=True)
+        result.sort(key=lambda x: (-x["challenge_count"], x["slug"]))
         return result

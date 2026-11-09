@@ -1,43 +1,66 @@
 :root {
-  /* Red & Black Jujutsu Theme Tokens */
-  --color-bg: #070709;
-  --color-panel: rgba(15, 6, 8, 0.75);
-  --color-panel-hover: rgba(26, 8, 12, 0.85);
-  --color-text: #FBF6EE;
-  --color-muted: #A89898;
-  --color-accent-red: #E0243A;
-  --color-accent-crimson: #FF2E44;
-  --color-accent-darkred: #8B0000;
-  --color-accent-blue: #FF2E44; /* Aliased for full red theme compatibility */
-  --color-accent-violet: #E0243A; /* Aliased for full red theme compatibility */
-  --color-passed: #34D399;
-  --color-wrong-output: #F59E0B;
-  --color-runtime-error: #FF2E44;
-  --color-timeout: #E0243A;
+  /* Clean Developer Dark Theme (LeetCode / CodeChef / GitHub Dark inspired) */
+  --bg-canvas: #0d1117;
+  --bg-surface: #161b22;
+  --bg-elevated: #21262d;
+  --bg-subtle: #1c2128;
+  --bg-editor: #0d1117;
+  --bg-input: #0d1117;
 
-  /* Structural & Glassmorphic Tokens */
-  --border-color: rgba(224, 36, 58, 0.28);
-  --border-subtle: rgba(224, 36, 58, 0.12);
-  --border-radius: 12px;
-  --border-radius-sm: 8px;
-  --border-radius-pill: 9999px;
-  --tile-blur: 16px;
-  --tile-bg: rgba(15, 6, 9, 0.75);
-  --tile-border: 1px solid rgba(224, 36, 58, 0.28);
-  --tile-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 46, 68, 0.08);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
 
-  /* Typography Stacks */
+  --border-default: #30363d;
+  --border-muted: #21262d;
+  --border-focus: #3b82f6;
+
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+  --accent-primary-soft: rgba(59, 130, 246, 0.14);
+
+  --status-passed: #22c55e;
+  --status-passed-bg: rgba(34, 197, 94, 0.12);
+  --status-wrong: #f59e0b;
+  --status-wrong-bg: rgba(245, 158, 11, 0.12);
+  --status-error: #ef4444;
+  --status-error-bg: rgba(239, 68, 68, 0.12);
+  --status-timeout: #a855f7;
+  --status-timeout-bg: rgba(168, 85, 247, 0.12);
+
+  /* Legacy variable aliases for compatibility across placeholder pages */
+  --color-bg: var(--bg-canvas);
+  --color-panel: var(--bg-surface);
+  --color-panel-hover: var(--bg-elevated);
+  --color-text: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --color-accent-red: var(--accent-primary);
+  --color-accent-crimson: var(--accent-primary);
+  --color-accent-blue: var(--accent-primary);
+  --color-passed: var(--status-passed);
+  --color-wrong-output: var(--status-wrong);
+  --color-runtime-error: var(--status-error);
+  --color-timeout: var(--status-timeout);
+  --border-color: var(--border-default);
+  --border-subtle: var(--border-muted);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.45);
+
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: 'Anton', 'Bebas Neue', Impact, 'Arial Black', sans-serif;
-  --font-brush: 'Permanent Marker', cursive, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Base properties */
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.5;
-  color: var(--color-text);
-  background-color: var(--color-bg);
+  color: var(--text-primary);
+  background-color: var(--bg-canvas);
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,31 +68,40 @@
 
 [data-theme="light"],
 :root[data-theme="light"] {
-  /* Light Domain Tokens - Infinite Void Cyan #00E3FF & Pure White */
-  --color-bg: #FFFFFF;
-  --color-panel: rgba(255, 255, 255, 0.92);
-  --color-panel-hover: rgba(240, 249, 255, 0.98);
-  --color-text: #0F172A;
-  --color-muted: #475569;
-  --color-accent-red: #00E3FF;
-  --color-accent-crimson: #00B8D4;
-  --color-accent-darkred: #0097A7;
-  --color-accent-blue: #00E3FF;
-  --color-accent-violet: #00B8D4;
-  --color-passed: #059669;
-  --color-wrong-output: #D97706;
-  --color-runtime-error: #DC2626;
-  --color-timeout: #0284C7;
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-subtle: #f8fafc;
+  --bg-editor: #ffffff;
+  --bg-input: #ffffff;
 
-  /* Structural & Glassmorphic Tokens */
-  --border-color: rgba(0, 227, 255, 0.40);
-  --border-subtle: rgba(0, 227, 255, 0.20);
-  --tile-bg: rgba(255, 255, 255, 0.92);
-  --tile-border: 1px solid rgba(0, 227, 255, 0.35);
-  --tile-shadow: 0 8px 32px 0 rgba(0, 227, 255, 0.12), inset 0 0 0 1px rgba(0, 227, 255, 0.18);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
 
-  color: #0F172A;
-  background-color: #FFFFFF;
+  --border-default: #e2e8f0;
+  --border-muted: #f1f5f9;
+  --border-focus: #2563eb;
+
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-primary-soft: rgba(37, 99, 235, 0.1);
+
+  --status-passed: #16a34a;
+  --status-passed-bg: rgba(22, 163, 74, 0.1);
+  --status-wrong: #d97706;
+  --status-wrong-bg: rgba(217, 119, 6, 0.1);
+  --status-error: #dc2626;
+  --status-error-bg: rgba(220, 38, 38, 0.1);
+  --status-timeout: #7c3aed;
+  --status-timeout-bg: rgba(124, 58, 237, 0.1);
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
+
+  color: var(--text-primary);
+  background-color: var(--bg-canvas);
   color-scheme: light;
 }
 
@@ -81,28 +113,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #060608;
-  background-image: 
-    linear-gradient(to bottom, rgba(5, 5, 8, 0.82) 0%, rgba(14, 4, 6, 0.74) 40%, rgba(5, 5, 8, 0.88) 100%),
-    url('/assets/bg.jpg');
-  background-size: cover;
-  background-position: center top;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  color: var(--color-text);
-}
-
-[data-theme="light"] body,
-body[data-theme="light"] {
-  background-color: #F8FAFC;
-  background-image: 
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.88) 0%, rgba(240, 249, 255, 0.80) 40%, rgba(255, 255, 255, 0.92) 100%),
-    url('/assets/backdrops/gojo_domain_bg.jpg');
-  background-size: cover;
-  background-position: center top;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  color: #0F172A;
+  background-color: var(--bg-canvas);
+  background-image: none;
+  color: var(--text-primary);
 }
 
 button, input, select, textarea {
@@ -119,17 +132,16 @@ button {
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
-/* Accessible focus ring per rules */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 a:focus-visible,
 [tabindex="0"]:focus-visible {
-  outline: 2px solid var(--color-accent-crimson);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 

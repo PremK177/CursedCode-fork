@@ -4,7 +4,6 @@ from app.repositories.submissions_repo import SubmissionsRepo
 from app.repositories.challenges_repo import ChallengesRepo
 from app.schemas.hint import HintRequest, HintResponse
 from app.services.hint_generator import generate_dynamic_hint
-from app.core.exceptions import NotFoundError
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -21,8 +20,8 @@ async def get_hint(body: HintRequest, db=Depends(get_supabase)):
     sub = sub_repo.get_by_public_id(body.submission_id)
     challenge = chal_repo.get_by_slug(sub["challenge_id"])
 
-    current_hints = sub.get("hints_requested", 0)
-    if body.level and 1 <= body.level <= MAX_HINTS:
+    current_hints = int(sub.get("hints_requested") or 0)
+    if body.level and 1 <= body.level <= min(current_hints + 1, MAX_HINTS):
         next_level = body.level
     else:
         next_level = min(current_hints + 1, MAX_HINTS)
@@ -72,7 +71,7 @@ async def get_hint(body: HintRequest, db=Depends(get_supabase)):
     except Exception as exc:
         logger.warning("Could not assemble visible test evidence: %s", exc)
 
-    # Collect prior hints
+    # Collect prior hints up to next_level - 1
     prior_hints = []
     try:
         ph_resp = (
@@ -86,7 +85,7 @@ async def get_hint(body: HintRequest, db=Depends(get_supabase)):
     except Exception:
         pass
 
-    # Generate dynamic hint with guardrails and optional code patch
+    # Generate progressive hint (code_patch is only generated if explicitly opted in via include_patch=True)
     source_code = sub.get("source_code", "")
     hint_text, code_patch = await generate_dynamic_hint(
         challenge=challenge,
@@ -95,10 +94,12 @@ async def get_hint(body: HintRequest, db=Depends(get_supabase)):
         visible_results=visible_evidence,
         hint_level=next_level,
         prior_hints=prior_hints,
+        include_patch=bool(body.include_patch),
     )
 
     # Record that hint was requested
-    sub_repo.update(sub["id"], {"hints_requested": next_level})
+    if next_level > current_hints:
+        sub_repo.update(sub["id"], {"hints_requested": next_level})
 
     return HintResponse(
         submission_id=body.submission_id,
@@ -108,4 +109,3 @@ async def get_hint(body: HintRequest, db=Depends(get_supabase)):
         hint=hint_text,
         code_patch=code_patch,
     )
-

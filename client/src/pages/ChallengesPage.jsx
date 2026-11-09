@@ -3,12 +3,24 @@ import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import ChallengeFilters from '../components/ChallengeFilters.jsx';
 import ChallengeCard from '../components/ChallengeCard.jsx';
-import SkeletonCard from '../components/SkeletonCard.jsx';
+import GradeBadge from '../components/GradeBadge.jsx';
 import { CHALLENGES } from '../data/challenges.js';
 import { getChallenges } from '../services/api.js';
 
-export default function ChallengesPage({ onNavigate, learnerName }) {
-  // Parse initial state from URL query parameters if available
+const CORE_JUDGE_SLUGS = new Set([
+  'last-k-total',
+  'count-passes',
+  'first-n-squares',
+  'middle-three'
+]);
+
+const STATUS_BADGE = {
+  Solved: { icon: '✓', label: 'Solved', cls: 'solved' },
+  Attempted: { icon: '●', label: 'Attempted', cls: 'attempted' },
+  New: { icon: '○', label: 'Todo', cls: 'new' }
+};
+
+export default function ChallengesPage({ onNavigate, learnerName, onUpdateLearnerName }) {
   const initialParams = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return {
@@ -23,28 +35,32 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
   const [selectedGrade, setSelectedGrade] = useState(initialParams.grade);
   const [selectedConcept, setSelectedConcept] = useState(initialParams.concept);
   const [selectedStatus, setSelectedStatus] = useState(initialParams.status);
+  const [viewMode, setViewMode] = useState('table'); // 'table' | 'cards'
   const [isLoading, setIsLoading] = useState(true);
   const [challenges, setChallenges] = useState(CHALLENGES);
   const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
     let active = true;
-    getChallenges(learnerName).then((data) => {
-      if (active) {
-        setChallenges(data);
-        setIsLive(true);
-        setIsLoading(false);
-      }
-    }).catch(() => {
-      if (active) {
-        setIsLoading(false);
-      }
-    });
+    getChallenges(learnerName)
+      .then((data) => {
+        if (active) {
+          setChallenges(data);
+          setIsLive(true);
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setIsLoading(false);
+        }
+      });
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [learnerName]);
 
-  // Sync state to URL query params
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set('q', searchQuery.trim());
@@ -57,7 +73,6 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
     window.history.replaceState({}, '', newUrl);
   }, [searchQuery, selectedGrade, selectedConcept, selectedStatus]);
 
-  // Handle active filters detection
   const hasActiveFilters = Boolean(
     searchQuery.trim() ||
     selectedGrade !== 'All grades' ||
@@ -72,27 +87,23 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
     setSelectedStatus('All statuses');
   };
 
-  // Filtered dataset
   const filteredChallenges = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return challenges.filter((item) => {
-      // Search matching title, description, or concept tags
       const matchesSearch =
         !query ||
         item.title.toLowerCase().includes(query) ||
+        (item.id && item.id.toLowerCase().includes(query)) ||
         (item.description && item.description.toLowerCase().includes(query)) ||
         (item.tags && item.tags.some((tag) => tag.toLowerCase().includes(query)));
 
-      // Grade matching
       const matchesGrade =
         selectedGrade === 'All grades' || item.grade === selectedGrade;
 
-      // Concept matching
       const matchesConcept =
         selectedConcept === 'All concepts' || (item.tags && item.tags.includes(selectedConcept));
 
-      // Status matching
       const matchesStatus =
         selectedStatus === 'All statuses' || item.status === selectedStatus;
 
@@ -100,34 +111,79 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
     });
   }, [challenges, searchQuery, selectedGrade, selectedConcept, selectedStatus]);
 
-  // Navigate to challenge workspace
+  const stats = useMemo(() => {
+    const total = challenges.length;
+    const solved = challenges.filter((c) => c.status === 'Solved').length;
+    const attempted = challenges.filter((c) => c.status === 'Attempted').length;
+    const easy = challenges.filter((c) => c.difficulty === 'Easy').length;
+    const medium = challenges.filter((c) => c.difficulty === 'Medium').length;
+    const hard = challenges.filter((c) => c.difficulty === 'Hard').length;
+    return { total, solved, attempted, easy, medium, hard };
+  }, [challenges]);
+
   const handleSelectChallenge = (id) => {
     onNavigate(`/challenges/${id}`);
   };
 
   return (
     <div className="page-shell">
-      <Header currentPath="/challenges" onNavigate={onNavigate} learnerName={learnerName} />
+      <Header
+        currentPath="/challenges"
+        onNavigate={onNavigate}
+        learnerName={learnerName}
+        onUpdateLearnerName={onUpdateLearnerName}
+      />
 
       <main className="content-container">
-        {/* Intro Section */}
-        <section className="page-intro">
-          <p className="eyebrow">
-            <span className="eyebrow-accent">// MISSION ARCHIVE</span>
-            <span>Browse Challenges</span>
-          </p>
-          <div className="intro-header">
-            <h1 className="page-title">
-              CHOOSE YOUR NEXT<br />
-              <span className="title-highlight">TRAINING MISSION.</span>
-            </h1>
-            <p className="intro-lead">
-              Solidify the small algorithmic decisions that make Python code bulletproof. From Grade 4 fundamentals to Grade 2 trials, practice under strict test case scrutiny.
+        <div className="page-header-row">
+          <div>
+            <h1 className="page-heading">Problem Set</h1>
+            <p className="page-subheading">
+              Debug realistic Python functions, fix edge cases, and pass both visible and hidden test suites.
             </p>
+          </div>
+
+          <div className="view-mode-toggle" role="group" aria-label="View mode">
+            <button
+              type="button"
+              className={`view-mode-btn ${viewMode === 'table' ? 'view-mode-btn--active' : ''}`}
+              onClick={() => setViewMode('table')}
+            >
+              Table View
+            </button>
+            <button
+              type="button"
+              className={`view-mode-btn ${viewMode === 'cards' ? 'view-mode-btn--active' : ''}`}
+              onClick={() => setViewMode('cards')}
+            >
+              Card Grid
+            </button>
+          </div>
+        </div>
+
+        <section className="stats-strip" aria-label="Problem set summary">
+          <div className="stat-card">
+            <span className="stat-card__label">Total Problems</span>
+            <span className="stat-card__value">{stats.total}</span>
+            <span className="stat-card__sub">4 Core Judge · {Math.max(0, stats.total - 4)} Practice</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-card__label">Solved</span>
+            <span className="stat-card__value">{stats.solved} / {stats.total}</span>
+            <span className="stat-card__sub">{stats.attempted} in progress</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-card__label">Difficulty Breakdown</span>
+            <span className="stat-card__value">{stats.easy}E · {stats.medium}M · {stats.hard}H</span>
+            <span className="stat-card__sub">Grade 4 to Grade 2</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-card__label">Judge Connection</span>
+            <span className="stat-card__value">{isLive ? 'Online' : 'Local'}</span>
+            <span className="stat-card__sub">Learner: {learnerName}</span>
           </div>
         </section>
 
-        {/* Filter Controls */}
         <ChallengeFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -141,13 +197,9 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
           hasActiveFilters={hasActiveFilters}
         />
 
-        {/* Status / Active Filters Bar */}
         <div className="status-bar" aria-live="polite">
-          <div className="status-bar__count">
-            <strong>{filteredChallenges.length}</strong> {filteredChallenges.length === 1 ? 'challenge' : 'challenges'} available
-            {hasActiveFilters && (
-              <span className="status-bar__filtered-note"> (filtered from {challenges.length})</span>
-            )}
+          <div>
+            Showing <strong>{filteredChallenges.length}</strong> of {challenges.length} problems
           </div>
 
           <div className="status-bar__active-pills">
@@ -156,9 +208,8 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
                 type="button"
                 className="filter-pill"
                 onClick={() => setSearchQuery('')}
-                title="Remove search query"
               >
-                Search: "{searchQuery}" ✕
+                Query: &ldquo;{searchQuery}&rdquo; ✕
               </button>
             )}
             {selectedGrade !== 'All grades' && (
@@ -166,7 +217,6 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
                 type="button"
                 className="filter-pill"
                 onClick={() => setSelectedGrade('All grades')}
-                title="Remove grade filter"
               >
                 {selectedGrade} ✕
               </button>
@@ -176,7 +226,6 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
                 type="button"
                 className="filter-pill"
                 onClick={() => setSelectedConcept('All concepts')}
-                title="Remove concept filter"
               >
                 {selectedConcept} ✕
               </button>
@@ -186,25 +235,101 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
                 type="button"
                 className="filter-pill"
                 onClick={() => setSelectedStatus('All statuses')}
-                title="Remove status filter"
               >
                 {selectedStatus} ✕
               </button>
             )}
-            <span className="status-bar__demo-badge">
-              {isLive ? 'Live Dojo Connected' : 'Local practice data'}
-            </span>
           </div>
         </div>
 
-        {/* Challenge Cards Grid or States */}
         {isLoading ? (
-          <div className="challenges-grid" aria-busy="true">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
+          <div className="empty-state" aria-busy="true">
+            <p className="empty-state__lead">Loading problem set…</p>
           </div>
-        ) : filteredChallenges.length > 0 ? (
+        ) : filteredChallenges.length === 0 ? (
+          <div className="empty-state">
+            <h2 className="empty-state__title">No Matching Problems</h2>
+            <p className="empty-state__lead">
+              Try adjusting your search query or clearing active filters.
+            </p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={handleClearFilters}
+            >
+              Reset All Filters
+            </button>
+          </div>
+        ) : viewMode === 'table' ? (
+          <div className="problem-table-card">
+            <table className="problem-table">
+              <thead>
+                <tr>
+                  <th className="problem-status-cell">Status</th>
+                  <th>Problem</th>
+                  <th>Topics</th>
+                  <th>Difficulty</th>
+                  <th>Limit</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredChallenges.map((ch) => {
+                  const statusInfo = STATUS_BADGE[ch.status] || STATUS_BADGE.New;
+                  const isCoreJudge = CORE_JUDGE_SLUGS.has(ch.id);
+                  return (
+                    <tr key={ch.id}>
+                      <td className="problem-status-cell">
+                        <span className={`status-indicator status-indicator--${statusInfo.cls}`}>
+                          <span aria-hidden="true">{statusInfo.icon}</span>
+                          <span>{statusInfo.label}</span>
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="problem-title-btn"
+                          onClick={() => handleSelectChallenge(ch.id)}
+                        >
+                          <span>{ch.title}</span>
+                          {isCoreJudge && (
+                            <span className="core-judge-badge">Core Judge</span>
+                          )}
+                        </button>
+                        <span className="problem-subtitle">{ch.description}</span>
+                      </td>
+                      <td>
+                        <div className="problem-topics-list">
+                          {(ch.tags || []).map((tag) => (
+                            <span key={tag} className="topic-pill">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <GradeBadge grade={ch.grade} difficulty={ch.difficulty} size="sm" />
+                      </td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        {ch.constraints?.time_limit_ms || ch.time_limit_ms || 500}ms
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => handleSelectChallenge(ch.id)}
+                        >
+                          <span>Solve</span>
+                          <span aria-hidden="true">→</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
           <div className="challenges-grid">
             {filteredChallenges.map((challenge) => (
               <ChallengeCard
@@ -213,21 +338,6 @@ export default function ChallengesPage({ onNavigate, learnerName }) {
                 onSelect={handleSelectChallenge}
               />
             ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-state__icon" aria-hidden="true">∅</div>
-            <h2 className="empty-state__title">No Challenges Match Filters</h2>
-            <p className="empty-state__lead">
-              Try adjusting your query or resetting filters to review the full mission roster.
-            </p>
-            <button
-              type="button"
-              className="primary-energy-btn"
-              onClick={handleClearFilters}
-            >
-              Reset all filters
-            </button>
           </div>
         )}
       </main>

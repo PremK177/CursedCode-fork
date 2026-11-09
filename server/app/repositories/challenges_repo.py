@@ -12,10 +12,25 @@ DIFF_TO_FRONTEND = {
 }
 
 
+SLUG_ALIASES = {
+    "countpasses": "count-passes",
+    "count_passes": "count-passes",
+    "middlethree": "middle-three",
+    "middle_three": "middle-three",
+    "last_k_total": "last-k-total",
+    "lastktotal": "last-k-total",
+    "first_n_squares": "first-n-squares",
+    "firstnsquares": "first-n-squares",
+}
+
+
 class ChallengesRepo:
     def __init__(self, db):
         self.db = db
         self.seed_map = {c["id"]: c for c in SEED_CHALLENGES}
+        for alias, target in SLUG_ALIASES.items():
+            if target in self.seed_map:
+                self.seed_map[alias] = self.seed_map[target]
 
     def list_published(self, learner_id: str | None = None) -> list[dict]:
         # Only select columns guaranteed to exist in schema 17-schema.md
@@ -85,7 +100,8 @@ class ChallengesRepo:
         return result
 
     def get_by_slug(self, slug_or_id: str) -> dict:
-        slug_clean = slug_or_id.strip().lower()
+        raw_clean = slug_or_id.strip().lower()
+        slug_clean = SLUG_ALIASES.get(raw_clean, raw_clean)
         resp = (
             self.db.table("challenges")
             .select("id, slug, title, statement, function_signature, starter_code, difficulty, sort_order")
@@ -94,6 +110,15 @@ class ChallengesRepo:
             .execute()
         )
         data = resp.data or []
+        if not data and raw_clean != slug_clean:
+            resp_alt = (
+                self.db.table("challenges")
+                .select("id, slug, title, statement, function_signature, starter_code, difficulty, sort_order")
+                .eq("slug", raw_clean)
+                .eq("is_published", True)
+                .execute()
+            )
+            data = resp_alt.data or []
         if not data:
             try:
                 resp2 = (

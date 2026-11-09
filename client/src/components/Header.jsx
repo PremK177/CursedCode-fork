@@ -1,15 +1,36 @@
+import { useState } from 'react';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-export default function Header({ currentPath, onNavigate, learnerName = 'zeroeight' }) {
+export default function Header({
+  currentPath,
+  onNavigate,
+  learnerName = 'rohan',
+  onUpdateLearnerName,
+}) {
   const { isLight, toggleTheme } = useTheme();
+  const [editingLearner, setEditingLearner] = useState(false);
+  const [draftName, setDraftName] = useState(learnerName);
+
   const isChallengesActive = currentPath === '/challenges' || currentPath.startsWith('/challenges/');
   const isProgressActive = currentPath === '/progress';
   const isMilestonesActive = currentPath === '/milestones';
   const isImportActive = currentPath === '/import';
 
-  const logoSrc = isLight
-    ? '/assets/brand/brand_logo_wordmark_light.png'
-    : '/assets/brand/brand_logo_wordmark.png';
+  const handleSaveLearner = (e) => {
+    e.preventDefault();
+    const cleaned = draftName.trim() || 'rohan';
+    if (onUpdateLearnerName) {
+      onUpdateLearnerName(cleaned);
+    } else {
+      try {
+        localStorage.setItem('cursedcode_learner_name', cleaned);
+        window.location.reload();
+      } catch {
+        // ignore
+      }
+    }
+    setEditingLearner(false);
+  };
 
   return (
     <header className="site-header">
@@ -18,22 +39,11 @@ export default function Header({ currentPath, onNavigate, learnerName = 'zeroeig
           type="button"
           className="brand-logo"
           onClick={() => onNavigate('/')}
-          aria-label="cursedCode Home"
+          aria-label="Debug Dojo Home"
         >
-          <img
-            key={logoSrc}
-            src={logoSrc}
-            alt="cursedCode"
-            className="brand-logo__img"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              const fallback = e.currentTarget.parentElement?.querySelector('.brand-logo__fallback');
-              if (fallback) fallback.style.display = 'inline-flex';
-            }}
-          />
-          <span className="brand-logo__fallback" style={{ display: 'none' }}>
-            <span className="brand-logo__mark" aria-hidden="true">C</span>
-            <span className="brand-logo__wordmark">cursedCode</span>
+          <span className="brand-logo__mark" aria-hidden="true">&lt;/&gt;</span>
+          <span className="brand-logo__wordmark">
+            Debug<span className="brand-logo__accent">Dojo</span>
           </span>
         </button>
 
@@ -44,16 +54,7 @@ export default function Header({ currentPath, onNavigate, learnerName = 'zeroeig
             onClick={() => onNavigate('/challenges')}
             aria-current={isChallengesActive ? 'page' : undefined}
           >
-            Challenges
-          </button>
-          <button
-            type="button"
-            className={`nav-link ${isImportActive ? 'nav-link--active' : ''}`}
-            onClick={() => onNavigate('/import')}
-            aria-current={isImportActive ? 'page' : undefined}
-          >
-            <span>Import Sheets</span>
-            <span className="nav-pill-badge">AI</span>
+            Problems
           </button>
           <button
             type="button"
@@ -65,32 +66,76 @@ export default function Header({ currentPath, onNavigate, learnerName = 'zeroeig
           </button>
           <button
             type="button"
+            className={`nav-link ${isImportActive ? 'nav-link--active' : ''}`}
+            onClick={() => onNavigate('/import')}
+            aria-current={isImportActive ? 'page' : undefined}
+          >
+            <span>Import Sheets</span>
+            <span className="nav-pill-badge">Beta</span>
+          </button>
+          <button
+            type="button"
             className={`nav-link ${isMilestonesActive ? 'nav-link--active' : ''}`}
             onClick={() => onNavigate('/milestones')}
             aria-current={isMilestonesActive ? 'page' : undefined}
           >
-            Milestones
+            <span>Milestones</span>
+            <span className="nav-pill-badge">Beta</span>
           </button>
         </nav>
 
         <div className="site-header__controls">
-          {/* Theme Toggle Button */}
           <button
             type="button"
             className="theme-toggle-btn"
             onClick={toggleTheme}
-            aria-label={`Switch to ${isLight ? 'Dark Domain' : 'Light Domain'} mode`}
-            title={`Current: ${isLight ? 'Light Domain (#00E3FF)' : 'Dark Domain (Sukuna)'}. Click to switch.`}
+            aria-label={`Switch to ${isLight ? 'dark' : 'light'} theme`}
+            title={`Switch to ${isLight ? 'dark' : 'light'} theme`}
           >
-            <span className="theme-toggle-icon" aria-hidden="true">{isLight ? '🌙' : '☀️'}</span>
-            <span className="theme-toggle-text">{isLight ? 'DARK' : 'LIGHT'}</span>
+            <span className="theme-toggle-icon" aria-hidden="true">{isLight ? '☾' : '☀'}</span>
+            <span className="theme-toggle-text">{isLight ? 'Dark' : 'Light'}</span>
           </button>
 
-          <div className="site-header__learner" title="Pseudonymous learner identifier">
-            <span className="learner-dot" aria-hidden="true">●</span>
-            <span className="learner-label">Learner:</span>
-            <span className="learner-name">{learnerName}</span>
-          </div>
+          {editingLearner ? (
+            <form className="learner-inline-form" onSubmit={handleSaveLearner}>
+              <input
+                type="text"
+                className="learner-inline-input"
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                placeholder="learner_id"
+                maxLength={24}
+                autoFocus
+                aria-label="Learner pseudonym"
+              />
+              <button type="submit" className="learner-inline-save">Save</button>
+              <button
+                type="button"
+                className="learner-inline-cancel"
+                onClick={() => {
+                  setDraftName(learnerName);
+                  setEditingLearner(false);
+                }}
+              >
+                ✕
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className="site-header__learner"
+              onClick={() => {
+                setDraftName(learnerName);
+                setEditingLearner(true);
+              }}
+              title="Click to switch pseudonymous learner ID"
+            >
+              <span className="learner-dot" aria-hidden="true">●</span>
+              <span className="learner-label">Learner:</span>
+              <span className="learner-name">{learnerName}</span>
+              <span className="learner-edit-hint" aria-hidden="true">✎</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

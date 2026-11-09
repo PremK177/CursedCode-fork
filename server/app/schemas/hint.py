@@ -12,6 +12,7 @@ class CodePatch(BaseModel):
 class HintRequest(BaseModel):
     submission_id: str = Field(..., min_length=1, max_length=128)
     level: int | None = Field(default=None, ge=1, le=4)
+    include_patch: bool = Field(default=False)
 
 
 class HintResponse(BaseModel):
@@ -21,4 +22,3 @@ class HintResponse(BaseModel):
     level: int = 1
     remaining: int = 3
     code_patch: CodePatch | None = None
-

@@ -26,8 +26,6 @@ async function apiFetch(path, options = {}) {
 
 /**
  * Fetch all published challenges from backend, fallback to local dataset on error.
- * Backend rows are minimal (id/slug/title/difficulty); enrich them with the static
- * challenge catalog so the UI has description, tags, grade, status, tests, etc.
  */
 export async function getChallenges(learnerId) {
   let backend = [];
@@ -45,7 +43,6 @@ export async function getChallenges(learnerId) {
 
   if (backend.length === 0) return CHALLENGES;
 
-  // Key static catalog by id for enrichment lookup.
   const byId = new Map(CHALLENGES.map((c) => [c.id, c]));
 
   return backend.map((b) => {
@@ -53,31 +50,40 @@ export async function getChallenges(learnerId) {
     if (!staticChallenge) return b;
     return {
       ...staticChallenge,
-      id: b.id || staticChallenge.id,
-      slug: b.slug,
+      ...b,
+      id: b.slug || b.id || staticChallenge.id,
+      slug: b.slug || staticChallenge.slug,
       title: b.title || staticChallenge.title,
       difficulty: b.difficulty || staticChallenge.difficulty,
+      status: b.status || staticChallenge.status,
+      tags: Array.isArray(b.tags) && b.tags.length > 0 ? b.tags : staticChallenge.tags,
     };
   });
 }
 
 /**
  * Fetch a single challenge by ID/slug from backend, fallback to local dataset.
- * Enriches the minimal backend row with the static catalog fields.
  */
 export async function getChallenge(challengeId) {
   try {
     const res = await apiFetch(`/api/challenges/${encodeURIComponent(challengeId)}`);
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const b = await res.json();
-    const staticChallenge = CHALLENGES.find((c) => c.id === b.slug || c.id === b.id || c.id === challengeId);
+    const staticChallenge = CHALLENGES.find(
+      (c) => c.id === b.slug || c.id === b.id || c.id === challengeId
+    );
     if (!staticChallenge) return b;
     return {
       ...staticChallenge,
-      id: b.id || staticChallenge.id,
-      slug: b.slug,
-      title: b.title || staticChallenge.title,
-      difficulty: b.difficulty || staticChallenge.difficulty,
+      ...b,
+      id: b.slug || b.id || staticChallenge.id,
+      slug: b.slug || staticChallenge.slug,
+      starterCode: b.starterCode || b.starter_code || staticChallenge.starterCode,
+      visibleTests:
+        Array.isArray(b.visibleTests) && b.visibleTests.length > 0
+          ? b.visibleTests
+          : staticChallenge.visibleTests,
+      hiddenTestCount: b.hiddenTestCount || staticChallenge.hiddenTestCount,
     };
   } catch {
     return CHALLENGES.find((c) => c.id === challengeId) || CHALLENGES[0];
@@ -113,13 +119,19 @@ export async function submitCode(learnerId, challengeId, code) {
 /**
  * Request next progressive hint for a completed submission.
  */
-export async function getHint(submissionId) {
+export async function getHint(submissionId, options = {}) {
+  const body = {
+    submission_id: submissionId,
+    ...(options.level ? { level: options.level } : {}),
+    ...(options.includePatch ? { include_patch: true } : {}),
+  };
+
   const res = await apiFetch('/api/hint', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ submission_id: submissionId })
+    body: JSON.stringify(body)
   });
 
   if (!res.ok) {
@@ -201,4 +213,3 @@ export async function batchImportSheet(sheetId, problemIds = [], autoGenerateTes
   }
   return await res.json();
 }
-

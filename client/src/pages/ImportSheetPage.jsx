@@ -4,22 +4,19 @@ import {
   getCuratedSheets,
   generateAITestCases,
   importSingleProblem,
-  batchImportSheet,
 } from '../services/api.js';
 
-export default function ImportSheetPage({ onNavigate, learnerName = 'zeroeight' }) {
+export default function ImportSheetPage({ onNavigate, learnerName = 'zeroeight', onUpdateLearnerName }) {
   const [activeTab, setActiveTab] = useState('curated'); // 'curated' | 'custom'
   const [sheets, setSheets] = useState([]);
   const [selectedSheetId, setSelectedSheetId] = useState('strivers-a2z');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [loadingSheets, setLoadingSheets] = useState(true);
 
   // Auto-generate edge cases toggle
   const [autoGenEdgeCases, setAutoGenEdgeCases] = useState(true);
 
   // Problem preview & edge case generation state
   const [previewingId, setPreviewingId] = useState(null);
-  const [isGeneratingTests, setIsGeneratingTests] = useState(false);
   const [generatedData, setGeneratedData] = useState({}); // { [problemId]: { visible_tests, hidden_tests, hints } }
   const [importedStatus, setImportedStatus] = useState({}); // { [problemId]: true }
   const [importingId, setImportingId] = useState(null);
@@ -51,10 +48,7 @@ export default function ImportSheetPage({ onNavigate, learnerName = 'zeroeight' 
           }
         }
       })
-      .catch((err) => console.error('Failed to load sheets:', err))
-      .finally(() => {
-        if (active) setLoadingSheets(false);
-      });
+      .catch(() => {});
     return () => { active = false; };
   }, []);
 
@@ -67,40 +61,6 @@ export default function ImportSheetPage({ onNavigate, learnerName = 'zeroeight' 
 
   const addLog = (msg) => {
     setTerminalLogs((prev) => [...prev.slice(-30), `[${new Date().toLocaleTimeString()}] ${msg}`]);
-  };
-
-  // Generate edge cases for a specific curated problem
-  const handlePreviewEdgeCases = async (problem) => {
-    if (generatedData[problem.id]) {
-      setPreviewingId(previewingId === problem.id ? null : problem.id);
-      return;
-    }
-
-    setPreviewingId(problem.id);
-    setIsGeneratingTests(true);
-    addLog(`Invoking OpenRouter to synthesize edge cases for "${problem.title}"...`);
-
-    try {
-      const res = await generateAITestCases({
-        title: problem.title,
-        statement: problem.statement,
-        function_signature: problem.function_signature || '',
-        starter_code: problem.starter_code || '',
-        difficulty: problem.difficulty || 'Medium',
-        tags: problem.tags || [],
-      });
-
-      setGeneratedData((prev) => ({
-        ...prev,
-        [problem.id]: res,
-      }));
-      addLog(`✓ OpenRouter generated ${res.visible_tests?.length || 0} visible + ${res.hidden_tests?.length || 0} hidden edge cases.`);
-    } catch (err) {
-      console.error(err);
-      addLog(`⚠ Edge-case generation failed for "${problem.title}": ${err.message}`);
-    } finally {
-      setIsGeneratingTests(false);
-    }
   };
 
   // Import a single problem into the database
@@ -129,7 +89,6 @@ export default function ImportSheetPage({ onNavigate, learnerName = 'zeroeight' 
       setImportedStatus((prev) => ({ ...prev, [problem.id]: true }));
       addLog(`✓ Successfully imported "${problem.title}" [${res.visible_test_count} visible, ${res.hidden_test_count} edge cases].`);
     } catch (err) {
-      console.error(err);
       addLog(`✕ Failed to import "${problem.title}": ${err.message}`);
     } finally {
       setImportingId(null);
@@ -232,7 +191,7 @@ export default function ImportSheetPage({ onNavigate, learnerName = 'zeroeight' 
 
   return (
     <div className="page-shell">
-      <Header currentPath="/import" onNavigate={onNavigate} learnerName={learnerName} />
+      <Header currentPath="/import" onNavigate={onNavigate} learnerName={learnerName} onUpdateLearnerName={onUpdateLearnerName} />
 
       <main className="content-container">
         {/* Breadcrumb Navigation */}

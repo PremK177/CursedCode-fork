@@ -1,5 +1,5 @@
+from typing import Any
 from fastapi import APIRouter, Depends
-from supabase import Client
 from app.integrations.supabase_client import get_supabase
 from app.repositories.challenges_repo import ChallengesRepo
 from app.schemas.challenge import ChallengeListItem, ChallengeDetail
@@ -7,7 +7,7 @@ from app.schemas.challenge import ChallengeListItem, ChallengeDetail
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
 
-def get_repo(db: Client = Depends(get_supabase)) -> ChallengesRepo:
+def get_repo(db: Any = Depends(get_supabase)) -> ChallengesRepo:
     return ChallengesRepo(db)
 
 
